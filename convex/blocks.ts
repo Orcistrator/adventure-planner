@@ -8,13 +8,15 @@ type BlockInsert = WithoutSystemFields<Doc<'blocks'>>;
 export const listByAdventure = query({
   args: { adventureId: v.id('adventures') },
   handler: async (ctx, args) => {
-    return ctx.db
+    const blocks = await ctx.db
       .query('blocks')
       .withIndex('by_adventure_page_and_order', (q) =>
         q.eq('adventureId', args.adventureId)
       )
       .order('asc')
       .take(500);
+    // Normalize: docs without page (pre-migration) fall back to page 1
+    return blocks.map((b) => ({ ...b, page: b.page ?? 1 }));
   },
 });
 
@@ -130,6 +132,23 @@ export const movePage = mutation({
 
     const order = lastOnPage ? lastOnPage.order + 1 : 1;
     await ctx.db.patch(args.id, { page: args.targetPage, order });
+  },
+});
+
+// One-time migration: backfill page: 1 on blocks that predate the page field.
+// Run once from the Convex dashboard, then delete and re-narrow page to required.
+export const backfillPage = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query('blocks').take(2000);
+    let patched = 0;
+    for (const block of all) {
+      if (block.page === undefined) {
+        await ctx.db.patch(block._id, { page: 1 });
+        patched++;
+      }
+    }
+    return { patched };
   },
 });
 

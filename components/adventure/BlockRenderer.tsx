@@ -77,13 +77,13 @@ export default function BlockRenderer({
       {renderContent()}
 
       {isEditing && (
-        <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-opacity flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
+        <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-[opacity] duration-150 flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
           {/* Within-page ordering */}
           <button
             onClick={() => moveBlock({ id: block._id, adventureId, direction: 'up' })}
             disabled={isFirst}
             title="Move up"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             <ChevronUp size={13} />
           </button>
@@ -91,7 +91,7 @@ export default function BlockRenderer({
             onClick={() => moveBlock({ id: block._id, adventureId, direction: 'down' })}
             disabled={isLast}
             title="Move down"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             <ChevronDown size={13} />
           </button>
@@ -102,7 +102,7 @@ export default function BlockRenderer({
             onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: block.page - 1 })}
             disabled={block.page <= 1}
             title="Move to previous page"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             <ChevronLeft size={13} />
           </button>
@@ -110,7 +110,7 @@ export default function BlockRenderer({
             onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: block.page + 1 })}
             disabled={block.page >= maxPage}
             title="Move to next page"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             <ChevronRight size={13} />
           </button>
@@ -120,7 +120,7 @@ export default function BlockRenderer({
           <button
             onClick={() => removeBlock({ id: block._id })}
             title="Delete block"
-            className="p-1 rounded text-gray-400 hover:text-red-500"
+            className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-[color,background-color,transform] duration-100 active:scale-90"
           >
             <Trash2 size={13} />
           </button>

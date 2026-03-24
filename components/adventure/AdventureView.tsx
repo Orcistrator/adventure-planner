@@ -67,7 +67,7 @@ export default function AdventureView({ slug }: AdventureViewProps) {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsEditing((v) => !v)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm shadow-lg transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm shadow-lg transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] ${
             isEditing
               ? 'bg-gray-900 text-white hover:bg-gray-800'
               : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'

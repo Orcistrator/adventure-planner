@@ -1,5 +1,4 @@
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/layout/AppSidebar';
+import FloatingToolbar from '@/components/layout/FloatingToolbar';
 
 export default function MainLayout({
   children,
@@ -7,9 +6,9 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AppSidebar />
-      <SidebarInset>{children}</SidebarInset>
-    </SidebarProvider>
+    <div className="relative min-h-screen">
+      <FloatingToolbar />
+      {children}
+    </div>
   );
 }

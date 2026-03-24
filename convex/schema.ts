@@ -29,14 +29,14 @@ export default defineSchema({
     v.union(
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('text'),
         markdown: v.string(),
       }),
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('heading'),
         text: v.string(),
@@ -44,7 +44,7 @@ export default defineSchema({
       }),
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('read-aloud'),
         text: v.string(),
@@ -54,7 +54,7 @@ export default defineSchema({
       }),
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('encounter'),
         title: v.string(),
@@ -62,7 +62,7 @@ export default defineSchema({
       }),
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('treasure-table'),
         title: v.string(),
@@ -70,7 +70,7 @@ export default defineSchema({
       }),
       v.object({
         adventureId: v.id('adventures'),
-        page: v.number(),
+        page: v.optional(v.number()),
         order: v.number(),
         type: v.literal('divider'),
       }),
