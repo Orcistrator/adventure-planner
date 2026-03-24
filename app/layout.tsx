@@ -1,9 +1,20 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Figtree, Faculty_Glyphic } from 'next/font/google';
+import { cn } from '@/lib/utils';
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const figtree = Figtree({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const facultyGlyphic = Faculty_Glyphic({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'D&D Vault',
@@ -16,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn(figtree.variable, facultyGlyphic.variable)}>
       <body className="font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
         {children}
       </body>
