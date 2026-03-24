@@ -3,6 +3,7 @@ import './globals.css';
 import { Figtree, Faculty_Glyphic } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import ConvexClientProvider from '@/components/providers/ConvexClientProvider';
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn(figtree.variable, facultyGlyphic.variable)}>
       <body className="font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
-        <TooltipProvider>{children}</TooltipProvider>
+        <ConvexClientProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

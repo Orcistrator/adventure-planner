@@ -9,6 +9,7 @@
  */
 
 import type * as adventures from "../adventures.js";
+import type * as blocks from "../blocks.js";
 import type * as entities from "../entities.js";
 
 import type {
@@ -19,6 +20,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   adventures: typeof adventures;
+  blocks: typeof blocks;
   entities: typeof entities;
 }>;
 
