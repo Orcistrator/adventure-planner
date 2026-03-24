@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Figtree, Faculty_Glyphic } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -29,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn(figtree.variable, facultyGlyphic.variable)}>
       <body className="font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   );
