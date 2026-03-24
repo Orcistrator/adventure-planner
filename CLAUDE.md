@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev          # Next.js dev server (localhost:3000)
-npm run build        # Production build
-npm run lint         # ESLint via next lint
+npm run dev          # Next.js dev server via Turbopack (localhost:3000)
+npm run build        # Production build (Webpack)
+npm run lint         # ESLint
 npx convex dev       # Run Convex backend + codegen (required alongside npm run dev)
 ```
 
@@ -42,7 +42,7 @@ Client components (anything with interactivity) are marked `'use client'` and li
 
 Tailwind v4 via `@tailwindcss/postcss`. Theme tokens (`--font-sans`, `--font-heading`) are defined in `app/globals.css` using the `@theme` block — not a `tailwind.config`. Two custom utility classes are defined there: `.drop-cap` and `.read-aloud`.
 
-Fonts are loaded via Google Fonts CSS import (not `next/font`). Faculty Glyphic is used for `font-heading`, Figtree for `font-sans`.
+Fonts are loaded via `next/font/google` in `app/layout.tsx` (`Figtree` → `--font-sans`, `Faculty_Glyphic` → `--font-heading`). The `@theme inline` block in `globals.css` maps these CSS variables to Tailwind utilities.
 
 ### Convex
 
