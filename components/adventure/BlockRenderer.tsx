@@ -77,7 +77,7 @@ export default function BlockRenderer({
       {renderContent()}
 
       {isEditing && (
-        <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-[opacity] duration-150 flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
+        <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-opacity duration-150 flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
           {/* Within-page ordering */}
           <button
             onClick={() => moveBlock({ id: block._id, adventureId, direction: 'up' })}
@@ -99,16 +99,16 @@ export default function BlockRenderer({
           {/* Cross-page movement */}
           <div className="w-px bg-gray-200 mx-0.5" />
           <button
-            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: block.page - 1 })}
-            disabled={block.page <= 1}
+            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: (block.page ?? 1) - 1 })}
+            disabled={(block.page ?? 1) <= 1}
             title="Move to previous page"
             className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             <ChevronLeft size={13} />
           </button>
           <button
-            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: block.page + 1 })}
-            disabled={block.page >= maxPage}
+            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: (block.page ?? 1) + 1 })}
+            disabled={(block.page ?? 1) >= maxPage}
             title="Move to next page"
             className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
           >
