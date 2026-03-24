@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Faculty+Glyphic&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Faculty Glyphic", ui-sans-serif, system-ui, sans-serif;
+}
+
+.drop-cap::first-letter {
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.8;
+  padding-right: 0.5rem;
+  padding-top: 0.2rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.read-aloud {
+  background-color: #f3f4f6;
+  border-left: 4px solid #374151;
+  padding: 1rem 1.5rem;
+  font-style: italic;
+  color: #4b5563;
+  margin: 1.5rem 0;
+}
