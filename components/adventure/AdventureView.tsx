@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Pencil, Eye } from "lucide-react";
 import AdventureHeader from "./AdventureHeader";
 import BlockList from "./BlockList";
+import TableOfContents from "./TableOfContents";
 
 interface AdventureViewProps {
   slug: string;
@@ -22,7 +23,7 @@ export default function AdventureView({ slug }: AdventureViewProps) {
   );
   const [isEditing, setIsEditing] = useState(false);
 
-  // Still loading the adventure itself
+
   if (adventure === undefined) {
     return (
       <div className="min-h-full bg-white">
@@ -50,7 +51,6 @@ export default function AdventureView({ slug }: AdventureViewProps) {
     );
   }
 
-  // Adventure loaded, waiting on blocks
   if (blocks === undefined) {
     return (
       <div className="min-h-full bg-white">
@@ -68,17 +68,35 @@ export default function AdventureView({ slug }: AdventureViewProps) {
     );
   }
 
+  const headings = blocks
+    .filter((b) => b.type === "heading")
+    .map((b) => ({
+      id: b._id,
+      text: (b as Extract<typeof b, { type: "heading" }>).text,
+      level: (b as Extract<typeof b, { type: "heading" }>).level,
+    }));
+
   return (
     <div className="min-h-full bg-white pb-24">
+      {/* Fixed header (in read mode) — needs a spacer to push content below it */}
       <AdventureHeader adventure={adventure} isEditing={isEditing} />
+      {!isEditing && <div className="h-[500px]" />}
 
-      <main className="bg-white pb-24">
-        <BlockList
-          adventureId={adventure._id}
-          blocks={blocks ?? []}
-          isEditing={isEditing}
-        />
-      </main>
+      <div className="max-w-6xl mx-auto px-6 py-12 flex gap-12">
+        {/* Table of contents */}
+        <aside className="hidden xl:block w-48 shrink-0">
+          <TableOfContents headings={headings} />
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0">
+          <BlockList
+            adventureId={adventure._id}
+            blocks={blocks ?? []}
+            isEditing={isEditing}
+          />
+        </main>
+      </div>
 
       {/* Edit toggle */}
       <div className="fixed bottom-6 right-6 z-50">

@@ -3,7 +3,7 @@
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import TextBlock from './blocks/TextBlock';
 import HeadingBlock from './blocks/HeadingBlock';
 import ReadAloudBlock from './blocks/ReadAloudBlock';
@@ -17,7 +17,6 @@ interface BlockRendererProps {
   isEditing: boolean;
   isFirst: boolean;
   isLast: boolean;
-  maxPage: number;
 }
 
 export default function BlockRenderer({
@@ -26,11 +25,9 @@ export default function BlockRenderer({
   isEditing,
   isFirst,
   isLast,
-  maxPage,
 }: BlockRendererProps) {
   const removeBlock = useMutation(api.blocks.remove);
   const moveBlock = useMutation(api.blocks.move);
-  const movePageBlock = useMutation(api.blocks.movePage);
 
   const renderContent = () => {
     switch (block.type) {
@@ -78,7 +75,6 @@ export default function BlockRenderer({
 
       {isEditing && (
         <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-opacity duration-150 flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
-          {/* Within-page ordering */}
           <button
             onClick={() => moveBlock({ id: block._id, adventureId, direction: 'up' })}
             disabled={isFirst}
@@ -96,26 +92,6 @@ export default function BlockRenderer({
             <ChevronDown size={13} />
           </button>
 
-          {/* Cross-page movement */}
-          <div className="w-px bg-gray-200 mx-0.5" />
-          <button
-            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: (block.page ?? 1) - 1 })}
-            disabled={(block.page ?? 1) <= 1}
-            title="Move to previous page"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft size={13} />
-          </button>
-          <button
-            onClick={() => movePageBlock({ id: block._id, adventureId, targetPage: (block.page ?? 1) + 1 })}
-            disabled={(block.page ?? 1) >= maxPage}
-            title="Move to next page"
-            className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-[color,background-color,transform] duration-100 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed"
-          >
-            <ChevronRight size={13} />
-          </button>
-
-          {/* Delete */}
           <div className="w-px bg-gray-200 mx-0.5" />
           <button
             onClick={() => removeBlock({ id: block._id })}

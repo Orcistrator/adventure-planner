@@ -52,5 +52,6 @@ export default function HeadingBlock({ id, text, level, isEditing }: HeadingBloc
   }
 
   const Tag = `h${safeLevel}` as 'h1' | 'h2' | 'h3';
-  return <Tag className={headingClasses[safeLevel]}>{text}</Tag>;
+  const anchorId = text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  return <Tag id={anchorId} className={headingClasses[safeLevel]}>{text}</Tag>;
 }
