@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Swords } from 'lucide-react';
 import { ENTITIES } from '@/lib/data';
+import Image from 'next/image';
 
 interface EncounterTrackerProps {
   title: string;
@@ -47,10 +48,13 @@ export default function EncounterTracker({ title, monsters }: EncounterTrackerPr
           >
             <div className="flex items-center gap-3">
               {combatant.entity.image ? (
-                <img
+                <Image
                   src={combatant.entity.image}
                   alt=""
-                  className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className="rounded-full object-cover border-2 border-white shadow-sm"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">

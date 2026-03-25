@@ -8,16 +8,6 @@ export const list = query({
   },
 });
 
-export const listByCampaign = query({
-  args: { campaignId: v.id('campaigns') },
-  handler: async (ctx, args) => {
-    return ctx.db
-      .query('adventures')
-      .withIndex('by_campaign', (q) => q.eq('campaignId', args.campaignId))
-      .take(100);
-  },
-});
-
 export const get = query({
   args: { id: v.id('adventures') },
   handler: async (ctx, args) => {
@@ -37,7 +27,6 @@ export const getBySlug = query({
 
 export const create = mutation({
   args: {
-    campaignId: v.id('campaigns'),
     title: v.string(),
     slug: v.string(),
     subtitle: v.optional(v.string()),

@@ -1,4 +1,5 @@
 import { Shield, Heart } from 'lucide-react';
+import Image from 'next/image';
 import type { Entity } from '@/lib/types';
 
 const typeColors = {
@@ -16,11 +17,13 @@ export default function EntityCard({ entity }: EntityCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
       {entity.image && (
-        <div className="h-48 w-full overflow-hidden bg-gray-100">
-          <img
+        <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+          <Image
             src={entity.image}
             alt={entity.name}
-            className="w-full h-full object-cover"
+            fill
+            unoptimized
+            className="object-cover"
           />
         </div>
       )}

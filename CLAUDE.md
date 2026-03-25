@@ -23,18 +23,19 @@ Pages live under `app/(main)/` inside a route group that wraps every page with t
 
 ### Data layer
 
-There are two parallel data sources in flight:
-
 - **`lib/data.ts`** — hardcoded seed entities (monsters, items). Used directly by components right now.
-- **`convex/`** — the real backend (schema, queries). Not yet wired to the UI. The migration path is to replace `lib/data.ts` imports with `useQuery(api.entities.list)` etc. once `ConvexProvider` is added to the root layout.
+- **`convex/`** — the real backend. Campaigns and adventures are fully wired to the UI via `useQuery`/`useMutation`. Entities are not yet wired — migration path is to replace `lib/data.ts` imports with `useQuery(api.entities.list)`.
 
-The Convex schema has three tables: `campaigns`, `adventures`, `entities`. See `convex/schema.ts` for field definitions and indexes.
+The Convex schema has four tables: `campaigns`, `adventures`, `campaignAdventures` (join table), `entities`. See `convex/schema.ts` for field definitions and indexes.
+
+Adventures are standalone — they can belong to zero, one, or many campaigns. The `campaignAdventures` join table links them with indexes `by_campaign`, `by_adventure`, and `by_campaign_and_adventure`.
 
 ### Components
 
 Client components (anything with interactivity) are marked `'use client'` and live in `components/`. Server components are the default for pages. The split:
 
 - `components/adventure/` — `ReadAloud`, `TreasureTable`, `EncounterTracker` are all client components with local state
+- `components/campaigns/` — `CampaignCard`, `CampaignFormModal`, `BookOpenIcon`. Card uses `motion/react` `layoutId` for a card-to-modal morph animation on edit. Modal includes a combobox (shadcn Command + `@base-ui/react` Popover) for linking/creating adventures.
 - `components/entities/` — `EntityLink` is a client component (hover state); `EntityCard` is a server component
 - `components/layout/Sidebar.tsx` — client component (open/close toggle, `usePathname`)
 

@@ -5,6 +5,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { Search, ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface AdventureHeaderProps {
   adventure: Doc<'adventures'>;
@@ -18,7 +19,6 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
   const [subtitle, setSubtitle] = useState(adventure.subtitle ?? '');
   const [level, setLevel] = useState(adventure.level ?? '');
   const [type, setType] = useState(adventure.type ?? '');
-  const [environment, setEnvironment] = useState(adventure.environment ?? '');
   const [tagsRaw, setTagsRaw] = useState(adventure.tags.join(', '));
   const [coverImage, setCoverImage] = useState(adventure.coverImage ?? '');
 
@@ -27,7 +27,6 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
     setSubtitle(adventure.subtitle ?? '');
     setLevel(adventure.level ?? '');
     setType(adventure.type ?? '');
-    setEnvironment(adventure.environment ?? '');
     setTagsRaw(adventure.tags.join(', '));
     setCoverImage(adventure.coverImage ?? '');
   }, [adventure]);
@@ -43,10 +42,12 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
       {/* Background */}
       <div className="absolute inset-0 z-0">
         {coverImage ? (
-          <img
+          <Image
             src={coverImage}
             alt=""
-            className="w-full h-full object-cover"
+            fill
+            unoptimized
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />

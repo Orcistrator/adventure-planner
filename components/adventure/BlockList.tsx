@@ -38,7 +38,7 @@ export default function BlockList({ adventureId, blocks, isEditing }: BlockListP
   const addBlock = useMutation(api.blocks.add);
 
   const pageNumbers = blocks.length > 0
-    ? [...new Set(blocks.map((b) => b.page))].sort((a, b) => a - b)
+    ? [...new Set(blocks.map((b) => b.page ?? 1))].sort((a, b) => a - b)
     : [1];
   const maxPage = Math.max(...pageNumbers);
 

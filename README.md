@@ -6,6 +6,8 @@ An enhanced D&D 5E adventure viewer for dungeon masters. Inspired by the format 
 
 ## Features
 
+- **Campaigns Dashboard** — Create and manage campaigns; animated card-to-modal morph on edit
+- **Adventure Management** — Adventures are standalone and can belong to one or many campaigns
 - **Adventure Viewer** — Two-column layout matching official 5E adventure formatting
 - **Read-Aloud Blocks** — Expandable if/then conversation prompts for DMs
 - **Entity Popovers** — Hover cards for monsters, items, characters, and locations
@@ -50,10 +52,11 @@ app/                    # Next.js App Router pages
     items/              # Items library
 components/
   adventure/            # ReadAloud, TreasureTable, EncounterTracker
+  campaigns/            # CampaignCard, CampaignFormModal, BookOpenIcon
   entities/             # EntityLink, EntityCard
   layout/               # Sidebar
-convex/                 # Backend schema and queries
-lib/                    # Shared types and seed data
+convex/                 # Backend schema, queries, and mutations
+lib/                    # Shared utilities and seed data
 ```
 
 ## Deployment

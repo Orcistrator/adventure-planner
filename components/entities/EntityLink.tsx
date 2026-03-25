@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Shield, Heart } from 'lucide-react';
+import Image from 'next/image';
 import { ENTITIES } from '@/lib/data';
 
 const typeColors = {
@@ -37,11 +38,13 @@ export default function EntityLink({ id, children }: EntityLinkProps) {
       {isOpen && (
         <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
           {entity.image && (
-            <div className="h-24 w-full overflow-hidden">
-              <img
+            <div className="relative h-24 w-full overflow-hidden">
+              <Image
                 src={entity.image}
                 alt={entity.name}
-                className="w-full h-full object-cover"
+                fill
+                unoptimized
+                className="object-cover"
               />
             </div>
           )}

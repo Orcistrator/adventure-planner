@@ -10,7 +10,6 @@ export default defineSchema({
   }),
 
   adventures: defineTable({
-    campaignId: v.id('campaigns'),
     slug: v.string(),
     title: v.string(),
     subtitle: v.optional(v.string()),
@@ -22,8 +21,15 @@ export default defineSchema({
     status: v.union(v.literal('draft'), v.literal('published')),
     createdAt: v.number(),
   })
-    .index('by_campaign', ['campaignId'])
     .index('by_slug', ['slug']),
+
+  campaignAdventures: defineTable({
+    campaignId: v.id('campaigns'),
+    adventureId: v.id('adventures'),
+  })
+    .index('by_campaign', ['campaignId'])
+    .index('by_adventure', ['adventureId'])
+    .index('by_campaign_and_adventure', ['campaignId', 'adventureId']),
 
   blocks: defineTable(
     v.union(
