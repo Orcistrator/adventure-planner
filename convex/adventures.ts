@@ -8,13 +8,6 @@ export const list = query({
   },
 });
 
-export const get = query({
-  args: { id: v.id('adventures') },
-  handler: async (ctx, args) => {
-    return ctx.db.get(args.id);
-  },
-});
-
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -29,10 +22,8 @@ export const create = mutation({
   args: {
     title: v.string(),
     slug: v.string(),
-    subtitle: v.optional(v.string()),
     level: v.optional(v.string()),
     type: v.optional(v.string()),
-    environment: v.optional(v.string()),
     tags: v.array(v.string()),
     coverImage: v.optional(v.string()),
   },
@@ -49,10 +40,8 @@ export const update = mutation({
   args: {
     id: v.id('adventures'),
     title: v.optional(v.string()),
-    subtitle: v.optional(v.string()),
     level: v.optional(v.string()),
     type: v.optional(v.string()),
-    environment: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     coverImage: v.optional(v.string()),
     status: v.optional(v.union(v.literal('draft'), v.literal('published'))),

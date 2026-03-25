@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Doc } from '@/convex/_generated/dataModel';
 import { Trash2 } from 'lucide-react';
 import TextBlock from './blocks/TextBlock';
 import ReadAloudBlock from './blocks/ReadAloudBlock';
@@ -13,7 +13,6 @@ import DividerBlock from './blocks/DividerBlock';
 
 interface BlockRendererProps {
   block: Doc<'blocks'>;
-  adventureId: Id<'adventures'>;
   isEditing: boolean;
   autoFocus?: boolean;
   onFocused?: () => void;
@@ -61,7 +60,6 @@ function LegacyHeadingBlock({
 
 export default function BlockRenderer({
   block,
-  adventureId,
   isEditing,
   autoFocus,
   onFocused,

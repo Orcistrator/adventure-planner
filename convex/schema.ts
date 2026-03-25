@@ -12,10 +12,8 @@ export default defineSchema({
   adventures: defineTable({
     slug: v.string(),
     title: v.string(),
-    subtitle: v.optional(v.string()),
     level: v.optional(v.string()),
     type: v.optional(v.string()),
-    environment: v.optional(v.string()),
     tags: v.array(v.string()),
     coverImage: v.optional(v.string()),
     status: v.union(v.literal('draft'), v.literal('published')),

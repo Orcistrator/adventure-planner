@@ -6,52 +6,101 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev          # Next.js dev server via Turbopack (localhost:3000)
-npm run build        # Production build (Webpack)
+npm run build        # Production build
 npm run lint         # ESLint
-npx convex dev       # Run Convex backend + codegen (required alongside npm run dev)
+npx convex dev       # Convex backend + codegen (run alongside npm run dev)
 ```
 
-There is no test suite yet.
+Both `npm run dev` and `npx convex dev` must be running simultaneously during development. There is no test suite.
 
 ## Architecture
 
-This is a **Next.js 15 App Router** project with **Convex** as the backend.
+**Next.js 15 App Router** + **Convex** backend. All pages live under `app/(main)/` — a route group that applies `FloatingToolbar` to every page. Root `app/layout.tsx` handles the HTML shell, fonts, and `ConvexClientProvider`.
 
 ### Routing
 
-Pages live under `app/(main)/` inside a route group that wraps every page with the sidebar shell (`app/(main)/layout.tsx`). The root `app/layout.tsx` handles only the HTML shell and global CSS. Adventure pages are dynamically routed at `/adventure/[id]` but currently render static content — the `id` param is not yet wired to a Convex query.
+| Route | Page |
+|---|---|
+| `/` | Campaigns list |
+| `/adventure/[id]` | Adventure viewer/editor (slug-based) |
+| `/adventures` | Adventures list |
+| `/entities`, `/items`, `/bestiary` | Entity browsers (partially wired) |
 
-### Data layer
+### Data Layer
 
-- **`lib/data.ts`** — hardcoded seed entities (monsters, items). Used directly by components right now.
-- **`convex/`** — the real backend. Campaigns and adventures are fully wired to the UI via `useQuery`/`useMutation`. Entities are not yet wired — migration path is to replace `lib/data.ts` imports with `useQuery(api.entities.list)`.
+**Convex schema** has five tables: `campaigns`, `adventures`, `campaignAdventures` (join), `blocks`, `entities`.
 
-The Convex schema has four tables: `campaigns`, `adventures`, `campaignAdventures` (join table), `entities`. See `convex/schema.ts` for field definitions and indexes.
+- Adventures are standalone — zero-to-many campaigns via `campaignAdventures` join table
+- `blocks` uses a **union type** with six variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`
+- Block ordering uses **floating-point fractional ordering** — new blocks inserted between two existing blocks get order `(a + b) / 2`, avoiding full reorders
+- `blocks.page` supports future multi-page documents; currently always `1`
+- `lib/data.ts` contains hardcoded seed entities used by `EncounterTracker` — migration path is `useQuery(api.entities.list)`
 
-Adventures are standalone — they can belong to zero, one, or many campaigns. The `campaignAdventures` join table links them with indexes `by_campaign`, `by_adventure`, and `by_campaign_and_adventure`.
-
-### Components
-
-Client components (anything with interactivity) are marked `'use client'` and live in `components/`. Server components are the default for pages. The split:
-
-- `components/adventure/` — `ReadAloud`, `TreasureTable`, `EncounterTracker` are all client components with local state
-- `components/campaigns/` — `CampaignCard`, `CampaignFormModal`, `BookOpenIcon`. Card uses `motion/react` `layoutId` for a card-to-modal morph animation on edit. Modal includes a combobox (shadcn Command + `@base-ui/react` Popover) for linking/creating adventures.
-- `components/entities/` — `EntityLink` is a client component (hover state); `EntityCard` is a server component
-- `components/layout/Sidebar.tsx` — client component (open/close toggle, `usePathname`)
-
-### Styling
-
-Tailwind v4 via `@tailwindcss/postcss`. Theme tokens (`--font-sans`, `--font-heading`) are defined in `app/globals.css` using the `@theme` block — not a `tailwind.config`. Two custom utility classes are defined there: `.drop-cap` and `.read-aloud`.
-
-Fonts are loaded via `next/font/google` in `app/layout.tsx` (`Figtree` → `--font-sans`, `Faculty_Glyphic` → `--font-heading`). The `@theme inline` block in `globals.css` maps these CSS variables to Tailwind utilities.
-
-### Convex
-
-**Always read `convex/_generated/ai/guidelines.md` before writing any Convex code.** It overrides training-data assumptions about Convex APIs.
-
-Key rules that differ from common assumptions:
+**Always read `convex/_generated/ai/guidelines.md` before writing any Convex code.** Key rules:
 - Always include argument validators on every function
 - Use `withIndex` instead of `filter` on queries
 - Never use `.collect()` without a bound — prefer `.take(n)` or paginate
-- Index names must include all indexed field names (e.g. `by_campaign_and_slug`)
-- `"use node"` files cannot export queries or mutations — Node actions must be in dedicated files
+- Index names must match their fields (e.g. `by_campaign_and_adventure`)
+- `"use node"` files cannot export queries or mutations
+
+### Adventure Page
+
+`AdventureView` orchestrates the full adventure page. The layout:
+
+```
+AdventureView
+├── AdventureHeader        — animated collapsing cover (fixed, scroll-driven)
+├── [h-125 spacer]         — reserves space for the fixed header in normal flow
+├── aside (xl only)
+│   ├── [title fades in]   — appears as header collapses (useTransform [220,400])
+│   └── TableOfContents    — sticky, scrolls with page
+└── main
+    └── BlockList
+        ├── InsertGap      — appears before every block in edit mode
+        ├── BlockRenderer  — routes to correct block component
+        └── InsertGap      — after last block in edit mode
+```
+
+**Header scroll animation** (Framer Motion `useScroll` + `useTransform`):
+- `headerHeight`: `[0,440]→[500,0]` — collapses to zero
+- `metaOpacity`: `[0,200]→[1,0]` — level/tags fade out
+- `titleOpacity`: `[80,280]→[1,0]` — title fades out
+- The ToC sidebar title fades in with `[220,400]→[0,1]` to replace the collapsing header title
+
+### Block System
+
+**Text blocks** are the primary editing surface. They store markdown-like syntax:
+- `# ` / `## ` / `### ` / `#### ` prefix → rendered as headings (also used for ToC extraction)
+- `**text**` / `*text*` → bold / italic inline
+- `- ` / `1. ` prefix → bullet / ordered lists
+
+TextBlock has a **client-side undo system** (`historyRef` array capped at 100, `historyIdxRef` pointer) with debounced snapshots (500ms) and Ctrl/Cmd+Z support. Snapshots are also taken before formatting actions.
+
+The **SelectionToolbar** floats above the textarea when text is selected. It uses `onMouseDown: e.preventDefault()` to preserve textarea focus/selection when clicking toolbar buttons.
+
+**Legacy heading blocks**: `heading`-type blocks still exist in the DB. `BlockRenderer` wraps them in `LegacyHeadingBlock`, which renders them correctly in view mode and auto-fires the `convertHeadingToText` mutation (delete + re-insert as `text` block with `#` prefix) when edit mode is entered.
+
+**InsertGap** renders a hover zone between every pair of blocks in edit mode. On click it opens a menu of insertable block types (all except text, which is created via Enter key). The `add` mutation returns the new block's ID; `BlockList` uses this to set `pendingFocusId` for auto-focus.
+
+**ToC extraction** (in `AdventureView`) handles both legacy heading blocks and `#`-prefixed text blocks:
+```ts
+const m = block.markdown.match(/^(#{1,4})\s+(.+)/);
+```
+
+### Campaigns
+
+`CampaignFormModal` uses a **deferred write pattern**: local `toAdd`, `toRemove`, `toCreate` arrays accumulate changes while the modal is open; everything is batch-written on submit. The modal also allows creating new adventures inline.
+
+`CampaignCard` and `CampaignFormModal` share a Framer Motion `layoutId` for a card-to-modal morph animation. The card is hidden (not unmounted) while its modal is open.
+
+### AdventureHeader Edit Mode
+
+Metadata inputs in edit mode:
+- **Level**: Two `number` inputs (1–20) serialized as `"5"` or `"1-5"` string in the DB
+- **Environments**: Multi-select toggle pills from `ENVIRONMENTS` preset (stored in `tags[]`)
+- **Type**: shadcn `<Select>` from `ADVENTURE_TYPES` preset, each with a Lucide icon
+- **Cover image**: URL input, top-right corner overlay
+
+### Styling
+
+Tailwind v4 via `@tailwindcss/postcss`. Theme tokens are defined in `app/globals.css` using `@theme` — there is no `tailwind.config`. Fonts: `Figtree` → `--font-sans` / `font-sans`, `Faculty_Glyphic` → `--font-heading` / `font-heading`. Two custom utility classes: `.drop-cap` and `.read-aloud`.

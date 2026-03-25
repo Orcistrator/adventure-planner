@@ -79,7 +79,6 @@ export default function BlockList({ adventureId, blocks, isEditing }: BlockListP
 
           <BlockRenderer
             block={block}
-            adventureId={adventureId}
             isEditing={isEditing}
             autoFocus={block._id === pendingFocusId}
             onFocused={() => setPendingFocusId(null)}

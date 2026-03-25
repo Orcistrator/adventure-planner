@@ -83,58 +83,6 @@ export const remove = mutation({
   },
 });
 
-// Swap order with adjacent block on the same page
-export const move = mutation({
-  args: {
-    id: v.id('blocks'),
-    adventureId: v.id('adventures'),
-    direction: v.union(v.literal('up'), v.literal('down')),
-  },
-  handler: async (ctx, args) => {
-    const block = await ctx.db.get(args.id);
-    if (!block) return;
-
-    const pageBlocks = await ctx.db
-      .query('blocks')
-      .withIndex('by_adventure_page_and_order', (q) =>
-        q.eq('adventureId', args.adventureId).eq('page', block.page)
-      )
-      .order('asc')
-      .take(500);
-
-    const idx = pageBlocks.findIndex((b) => b._id === args.id);
-    if (idx === -1) return;
-
-    const swapIdx = args.direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= pageBlocks.length) return;
-
-    const swapBlock = pageBlocks[swapIdx];
-    await ctx.db.patch(args.id, { order: swapBlock.order });
-    await ctx.db.patch(swapBlock._id, { order: block.order });
-  },
-});
-
-// Move a block to a different page (appended at the end of that page)
-export const movePage = mutation({
-  args: {
-    id: v.id('blocks'),
-    adventureId: v.id('adventures'),
-    targetPage: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const lastOnPage = await ctx.db
-      .query('blocks')
-      .withIndex('by_adventure_page_and_order', (q) =>
-        q.eq('adventureId', args.adventureId).eq('page', args.targetPage)
-      )
-      .order('desc')
-      .first();
-
-    const order = lastOnPage ? lastOnPage.order + 1 : 1;
-    await ctx.db.patch(args.id, { page: args.targetPage, order });
-  },
-});
-
 // Convert a legacy heading block to a text block with `# ` prefix
 export const convertHeadingToText = mutation({
   args: { id: v.id('blocks') },
@@ -150,23 +98,6 @@ export const convertHeadingToText = mutation({
       type: 'text',
       markdown: prefix + block.text,
     });
-  },
-});
-
-// One-time migration: backfill page: 1 on blocks that predate the page field.
-// Run once from the Convex dashboard, then delete and re-narrow page to required.
-export const backfillPage = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const all = await ctx.db.query('blocks').take(2000);
-    let patched = 0;
-    for (const block of all) {
-      if (block.page === undefined) {
-        await ctx.db.patch(block._id, { page: 1 });
-        patched++;
-      }
-    }
-    return { patched };
   },
 });
 
