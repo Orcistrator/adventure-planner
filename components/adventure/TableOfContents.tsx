@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface TocEntry {
   id: string;
@@ -15,22 +15,24 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
 
   const handleClick = (e: React.MouseEvent, anchorId: string) => {
     e.preventDefault();
-    document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document
+      .getElementById(anchorId)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const indentClass: Record<number, string> = {
-    1: 'pl-0 text-sm font-semibold text-gray-700 hover:text-indigo-600',
-    2: 'pl-0 text-sm font-semibold text-gray-700 hover:text-indigo-600',
-    3: 'pl-3 text-xs text-gray-500 hover:text-indigo-500',
+    1: "pl-0 text-sm font-semibold text-gray-700 hover:text-indigo-600",
+    2: "pl-0 text-sm font-semibold text-gray-700 hover:text-indigo-600",
+    3: "pl-3 text-xs text-gray-500 hover:text-indigo-500",
   };
 
   return (
-    <nav className="sticky top-8 flex flex-col gap-1 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-2 shrink-0">
-        Contents
-      </p>
+    <div className="flex flex-col gap-3">
       {headings.map((h) => {
-        const anchorId = h.text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const anchorId = h.text
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "");
         return (
           <a
             key={h.id}
@@ -42,6 +44,6 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
           </a>
         );
       })}
-    </nav>
+    </div>
   );
 }

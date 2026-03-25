@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Pencil, Eye } from "lucide-react";
+import { motion, useScroll, useTransform } from "motion/react";
 import AdventureHeader from "./AdventureHeader";
 import BlockList from "./BlockList";
 import TableOfContents from "./TableOfContents";
@@ -23,6 +24,9 @@ export default function AdventureView({ slug }: AdventureViewProps) {
   );
   const [isEditing, setIsEditing] = useState(false);
 
+  const { scrollY } = useScroll();
+  // Title fades into the ToC sidebar as the cover header scrolls away
+  const sidebarTitleOpacity = useTransform(scrollY, [220, 400], [0, 1]);
 
   if (adventure === undefined) {
     return (
@@ -68,24 +72,49 @@ export default function AdventureView({ slug }: AdventureViewProps) {
     );
   }
 
-  const headings = blocks
-    .filter((b) => b.type === "heading")
-    .map((b) => ({
-      id: b._id,
-      text: (b as Extract<typeof b, { type: "heading" }>).text,
-      level: (b as Extract<typeof b, { type: "heading" }>).level,
-    }));
+  const headings = blocks.flatMap((b) => {
+    // Legacy heading blocks
+    if (b.type === "heading") {
+      return [
+        {
+          id: b._id,
+          text: (b as Extract<typeof b, { type: "heading" }>).text,
+          level: (b as Extract<typeof b, { type: "heading" }>).level,
+        },
+      ];
+    }
+    // Text blocks with `#` prefix
+    if (b.type === "text") {
+      const m = (b as Extract<typeof b, { type: "text" }>).markdown.match(
+        /^(#{1,4})\s+(.+)/,
+      );
+      if (m) return [{ id: b._id, text: m[2].trimEnd(), level: m[1].length }];
+    }
+    return [];
+  });
 
   return (
     <div className="min-h-full bg-white pb-24">
       {/* Fixed header (in read mode) — needs a spacer to push content below it */}
       <AdventureHeader adventure={adventure} isEditing={isEditing} />
-      {!isEditing && <div className="h-[500px]" />}
+      {!isEditing && <div className="h-125" />}
 
       <div className="max-w-6xl mx-auto px-6 py-12 flex gap-12">
         {/* Table of contents */}
         <aside className="hidden xl:block w-48 shrink-0">
-          <TableOfContents headings={headings} />
+          <div className="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1 flex flex-col gap-3">
+            {/* Adventure title — fades in as cover scrolls away */}
+            <motion.div
+              style={{ opacity: sidebarTitleOpacity }}
+              className="shrink-0"
+            >
+              <h2 className="font-heading text-base font-bold text-gray-900 leading-snug mb-3">
+                {adventure.title}
+              </h2>
+            </motion.div>
+
+            <TableOfContents headings={headings} />
+          </div>
         </aside>
 
         {/* Main content */}

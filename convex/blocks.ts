@@ -135,6 +135,24 @@ export const movePage = mutation({
   },
 });
 
+// Convert a legacy heading block to a text block with `# ` prefix
+export const convertHeadingToText = mutation({
+  args: { id: v.id('blocks') },
+  handler: async (ctx, { id }) => {
+    const block = await ctx.db.get(id);
+    if (!block || block.type !== 'heading') return;
+    const prefix = '#'.repeat(Math.max(1, Math.min(4, block.level))) + ' ';
+    await ctx.db.delete(id);
+    return ctx.db.insert('blocks', {
+      adventureId: block.adventureId,
+      page: block.page ?? 1,
+      order: block.order,
+      type: 'text',
+      markdown: prefix + block.text,
+    });
+  },
+});
+
 // One-time migration: backfill page: 1 on blocks that predate the page field.
 // Run once from the Convex dashboard, then delete and re-narrow page to required.
 export const backfillPage = mutation({

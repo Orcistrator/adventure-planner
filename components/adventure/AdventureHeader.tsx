@@ -42,23 +42,17 @@ export default function AdventureHeader({
   };
 
   const { scrollY } = useScroll();
-  const parallaxY = useTransform(scrollY, [0, 600], [0, 150]);
-  const headerHeight = useTransform(scrollY, [0, 380], [500, 64]);
+  const headerHeight = useTransform(scrollY, [0, 440], [500, 0]);
   const metaOpacity = useTransform(scrollY, [0, 200], [1, 0]);
-  const titleScale = useTransform(scrollY, [0, 380], [1, 0.4]);
-  // Title drifts from its natural bottom position (88px up) to a centered position in the 64px sliver
-  const titleBottom = useTransform(scrollY, [0, 380], [88, 16]);
+  const titleOpacity = useTransform(scrollY, [80, 280], [1, 0]);
 
   const tags = adventure.tags;
 
   // Edit mode: static, full-height, normal flow
   if (isEditing) {
     return (
-      <header className="relative h-[500px] flex items-end pb-12 overflow-hidden">
-        <motion.div
-          style={{ y: parallaxY }}
-          className="absolute inset-0 z-0 scale-[1.35]"
-        >
+      <header className="relative h-125 flex items-end pb-12 overflow-hidden">
+        <div className="absolute inset-0 z-0">
           {coverImage ? (
             <Image
               src={coverImage}
@@ -68,10 +62,10 @@ export default function AdventureHeader({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
+            <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
           )}
-        </motion.div>
-        <div className="absolute inset-0 z-0 bg-black/50" />
+        </div>
+        <div className="absolute inset-0 z-0 bg-linear-to-b from-black/10 via-black/30 to-black/70" />
 
         <div className="absolute top-4 right-4 z-20">
           <div className="flex items-center gap-2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
@@ -107,7 +101,7 @@ export default function AdventureHeader({
                 })
               }
               placeholder="Tags (comma separated)"
-              className="bg-transparent text-white/70 text-xs outline-none border-b border-white/30 focus:border-white pb-0.5 placeholder:text-white/40 min-w-[180px]"
+              className="bg-transparent text-white/70 text-xs outline-none border-b border-white/30 focus:border-white pb-0.5 placeholder:text-white/40 min-w-45"
             />
           </div>
           <input
@@ -146,11 +140,7 @@ export default function AdventureHeader({
       className="fixed top-0 left-0 right-0 z-40 overflow-hidden"
       style={{ height: headerHeight }}
     >
-      {/* Parallax background */}
-      <motion.div
-        style={{ y: parallaxY }}
-        className="absolute inset-0 z-0 scale-[1.35]"
-      >
+      <div className="absolute inset-0 z-0">
         {coverImage ? (
           <Image
             src={coverImage}
@@ -160,10 +150,10 @@ export default function AdventureHeader({
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
+          <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
         )}
-      </motion.div>
-      <div className="absolute inset-0 z-0 bg-black/50" />
+      </div>
+      <div className="absolute inset-0 z-0 bg-linear-to-br from-gray-950/10 to-gray-950" />
 
       {/* Absolutely positioned content — all anchored from the bottom */}
       <div className="absolute inset-x-0 bottom-0">
@@ -174,7 +164,7 @@ export default function AdventureHeader({
           {/* Meta row — fades out, stays at its natural position */}
           <motion.div
             style={{ opacity: metaOpacity, bottom: 192 }}
-            className="absolute left-6 xl:left-[264px] right-6 flex items-center gap-3 flex-wrap"
+            className="absolute left-6 xl:left-66 right-6 flex items-center gap-3 flex-wrap"
           >
             {level && (
               <span className="text-white font-semibold tracking-wider text-sm">
@@ -191,14 +181,10 @@ export default function AdventureHeader({
             ))}
           </motion.div>
 
-          {/* Title — scales down and drifts to the sliver */}
+          {/* Title — fades out in place as header collapses */}
           <motion.h1
-            style={{
-              bottom: titleBottom,
-              scale: titleScale,
-              transformOrigin: "left bottom",
-            }}
-            className="absolute left-6 xl:left-[264px] right-6 font-heading text-5xl md:text-7xl text-white font-bold leading-tight drop-shadow-lg"
+            style={{ opacity: titleOpacity, bottom: 88 }}
+            className="absolute left-6 xl:left-66 right-6 font-heading text-5xl md:text-6xl text-white font-bold leading-tight drop-shadow-lg"
           >
             {adventure.title}
           </motion.h1>
@@ -206,7 +192,7 @@ export default function AdventureHeader({
           {/* Subtitle / type row — fades out */}
           <motion.div
             style={{ opacity: metaOpacity, bottom: 48 }}
-            className="absolute left-6 xl:left-[264px] right-6 flex items-center gap-2 text-gray-300 text-lg"
+            className="absolute left-6 xl:left-66 right-6 flex items-center gap-2 text-gray-300 text-lg"
           >
             {adventure.type && (
               <>
