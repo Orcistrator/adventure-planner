@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
-import { Pencil, Check, Plus, Trash2 } from 'lucide-react';
+import { Check, Plus, Trash2 } from 'lucide-react';
 import TreasureTable from '@/components/adventure/TreasureTable';
 
 interface TableItem {
@@ -17,10 +17,15 @@ interface TreasureTableBlockProps {
   title: string;
   items: TableItem[];
   isEditing: boolean;
+  editTrigger?: number;
 }
 
-export default function TreasureTableBlock({ id, title, items, isEditing }: TreasureTableBlockProps) {
+export default function TreasureTableBlock({ id, title, items, isEditing, editTrigger }: TreasureTableBlockProps) {
   const [editOpen, setEditOpen] = useState(false);
+
+  useEffect(() => {
+    if (editTrigger) setEditOpen(true);
+  }, [editTrigger]);
   const [draftTitle, setDraftTitle] = useState(title);
   const [draftItems, setDraftItems] = useState<TableItem[]>(items);
   const updateBlock = useMutation(api.blocks.update);
@@ -102,17 +107,5 @@ export default function TreasureTableBlock({ id, title, items, isEditing }: Trea
     );
   }
 
-  return (
-    <div className="relative group/treasure">
-      <TreasureTable title={title} items={items} />
-      {isEditing && (
-        <button
-          onClick={() => setEditOpen(true)}
-          className="absolute top-2 right-2 opacity-0 group-hover/treasure:opacity-100 transition-opacity p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 hover:text-amber-600"
-        >
-          <Pencil size={14} />
-        </button>
-      )}
-    </div>
-  );
+  return <TreasureTable title={title} items={items} />;
 }

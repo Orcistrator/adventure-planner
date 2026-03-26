@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
-import { Trash2 } from 'lucide-react';
 import TextBlock from './blocks/TextBlock';
 import ReadAloudBlock from './blocks/ReadAloudBlock';
 import EncounterBlock from './blocks/EncounterBlock';
@@ -18,6 +17,7 @@ interface BlockRendererProps {
   onFocused?: () => void;
   onCreateAfter?: () => void;
   onDeleteSelf?: () => void;
+  editTrigger?: number;
 }
 
 // ─── Legacy heading block ─────────────────────────────────────────────────────
@@ -65,9 +65,8 @@ export default function BlockRenderer({
   onFocused,
   onCreateAfter,
   onDeleteSelf,
+  editTrigger,
 }: BlockRendererProps) {
-  const removeBlock = useMutation(api.blocks.remove);
-
   const renderContent = () => {
     switch (block.type) {
       case 'text':
@@ -85,11 +84,11 @@ export default function BlockRenderer({
       case 'heading':
         return <LegacyHeadingBlock block={block} isEditing={isEditing} />;
       case 'read-aloud':
-        return <ReadAloudBlock id={block._id} text={block.text} prompts={block.prompts} isEditing={isEditing} />;
+        return <ReadAloudBlock id={block._id} text={block.text} prompts={block.prompts} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'encounter':
-        return <EncounterBlock id={block._id} title={block.title} monsters={block.monsters} isEditing={isEditing} />;
+        return <EncounterBlock id={block._id} title={block.title} monsters={block.monsters} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'treasure-table':
-        return <TreasureTableBlock id={block._id} title={block.title} items={block.items} isEditing={isEditing} />;
+        return <TreasureTableBlock id={block._id} title={block.title} items={block.items} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'divider':
         return <DividerBlock />;
       default:
@@ -97,26 +96,5 @@ export default function BlockRenderer({
     }
   };
 
-  // Text blocks: frameless in edit mode
-  if (block.type === 'text') {
-    return <div>{renderContent()}</div>;
-  }
-
-  // Special blocks: delete button on hover in edit mode
-  return (
-    <div className="relative group/block">
-      {renderContent()}
-      {isEditing && (
-        <div className="absolute top-1 right-1 opacity-0 group-hover/block:opacity-100 transition-opacity duration-150 flex gap-0.5 bg-white/90 rounded border border-gray-200 shadow-sm p-0.5">
-          <button
-            onClick={() => removeBlock({ id: block._id })}
-            title="Delete block"
-            className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-100 active:scale-90"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  return <div>{renderContent()}</div>;
 }

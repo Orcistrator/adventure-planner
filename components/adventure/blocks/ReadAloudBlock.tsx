@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
-import { Pencil, Check, Plus, Trash2 } from 'lucide-react';
+import { Check, Plus, Trash2 } from 'lucide-react';
 import ReadAloud from '@/components/adventure/ReadAloud';
 
 interface Prompt {
@@ -17,10 +17,15 @@ interface ReadAloudBlockProps {
   text: string;
   prompts?: Prompt[];
   isEditing: boolean;
+  editTrigger?: number;
 }
 
-export default function ReadAloudBlock({ id, text, prompts, isEditing }: ReadAloudBlockProps) {
+export default function ReadAloudBlock({ id, text, prompts, isEditing, editTrigger }: ReadAloudBlockProps) {
   const [editOpen, setEditOpen] = useState(false);
+
+  useEffect(() => {
+    if (editTrigger) setEditOpen(true);
+  }, [editTrigger]);
   const [draftText, setDraftText] = useState(text);
   const [draftPrompts, setDraftPrompts] = useState<Prompt[]>(prompts ?? []);
   const updateBlock = useMutation(api.blocks.update);
@@ -103,17 +108,5 @@ export default function ReadAloudBlock({ id, text, prompts, isEditing }: ReadAlo
     );
   }
 
-  return (
-    <div className="relative group/readAloud">
-      <ReadAloud text={text} prompts={prompts} />
-      {isEditing && (
-        <button
-          onClick={() => setEditOpen(true)}
-          className="absolute top-2 right-2 opacity-0 group-hover/readAloud:opacity-100 transition-opacity p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 hover:text-indigo-600"
-        >
-          <Pencil size={14} />
-        </button>
-      )}
-    </div>
-  );
+  return <ReadAloud text={text} prompts={prompts} />;
 }
