@@ -349,7 +349,7 @@ export function ModalShell({
             <button
               type="button"
               onClick={onClose}
-              className="content-center rounded-lg top-1.5 right-[14px] absolute bg-[oklab(0%_0_0/30%)] p-1.5 hover:bg-[oklab(0%_0_0/50%)] transition-colors"
+              className="content-center rounded-lg top-1.5 right-[14px] absolute bg-[oklab(0%_0_0/30%)] p-1.5 hover:bg-[oklab(0%_0_0/50%)] transition-[background-color,transform] duration-100 active:scale-90"
               aria-label="Close"
             >
               <X size={14} color="white" strokeWidth={2} />
@@ -364,7 +364,7 @@ export function ModalShell({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="rounded-lg py-2 px-3 text-[14px] font-medium text-red-500 hover:bg-red-50 transition-colors"
+                  className="rounded-lg py-2 px-3 text-[14px] font-medium text-red-500 hover:bg-red-50 transition-[background-color,transform] duration-150 active:scale-[0.97]"
                 >
                   Delete
                 </button>
@@ -373,14 +373,14 @@ export function ModalShell({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg py-2 px-4 text-[14px] font-medium text-[oklch(44.6%_0.030_256.8)] hover:bg-stone-100 transition-colors"
+                className="rounded-lg py-2 px-4 text-[14px] font-medium text-[oklch(44.6%_0.030_256.8)] hover:bg-stone-100 transition-[background-color,transform] duration-150 active:scale-[0.97]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-colors disabled:opacity-50"
+                className="rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-[background-color,transform] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
               >
                 {saving ? 'Saving…' : submitLabel}
               </button>

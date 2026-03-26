@@ -366,7 +366,7 @@ export function EntityDrawer({ onEdit }: { onEdit?: (entity: Doc<'entities'>) =>
             {/* Close button */}
             <DrawerClose asChild>
               <button
-                className="absolute right-2 top-2 rounded-[10px] bg-[oklch(0%_0_0/30%)] p-1.5 hover:bg-[oklch(0%_0_0/50%)] transition-colors"
+                className="absolute right-2 top-2 rounded-[10px] bg-[oklch(0%_0_0/30%)] p-1.5 hover:bg-[oklch(0%_0_0/50%)] transition-[background-color,transform] duration-100 active:scale-90"
                 aria-label="Close"
               >
                 <X size={16} color="white" strokeWidth={1.5} />
@@ -384,7 +384,7 @@ export function EntityDrawer({ onEdit }: { onEdit?: (entity: Doc<'entities'>) =>
               {onEdit && (
                 <button
                   onClick={() => { close(); onEdit(displayEntity); }}
-                  className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-[oklch(44.6%_0.030_256.8)] hover:bg-stone-100 transition-colors shrink-0"
+                  className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-[oklch(44.6%_0.030_256.8)] hover:bg-stone-100 transition-[background-color,transform] duration-150 active:scale-[0.97] shrink-0"
                 >
                   <Pencil size={13} />
                   Edit

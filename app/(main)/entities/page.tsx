@@ -92,7 +92,7 @@ export default function EntitiesPage() {
           </h1>
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-colors">
+            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-[background-color,transform] duration-150 active:scale-[0.97]">
               + Add Entity
               <ChevronDown size={14} className="opacity-70" />
             </DropdownMenuTrigger>

@@ -68,7 +68,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
 
   return (
     <div
-      className="flex flex-col gap-3 p-3 rounded-[10px] bg-white [border-width:0.666667px] border-[oklch(92.8%_0.006_264.5)] hover:shadow-md transition-shadow cursor-pointer"
+      className="flex flex-col gap-3 p-3 rounded-[10px] bg-white [border-width:0.666667px] border-[oklch(92.8%_0.006_264.5)] hover:shadow-md transition-[box-shadow,transform] duration-150 active:scale-[0.98] cursor-pointer"
       onClick={() => open(entity)}
     >
       {/* Square image */}
@@ -83,7 +83,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
         {onEdit && (
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="absolute right-2 top-2 rounded-lg bg-[oklch(0%_0_0/30%)] p-1.5 hover:bg-[oklch(0%_0_0/50%)] transition-colors"
+            className="absolute right-2 top-2 rounded-lg bg-[oklch(0%_0_0/30%)] p-1.5 hover:bg-[oklch(0%_0_0/50%)] transition-[background-color,transform] duration-100 active:scale-90"
             aria-label="Edit"
           >
             <Pencil size={14} color="white" strokeWidth={2} />

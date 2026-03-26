@@ -26,7 +26,7 @@ export default function CampaignsPage() {
         </h1>
         <button
           onClick={() => setIsCreating(true)}
-          className="rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-colors"
+          className="rounded-lg py-2 px-4 bg-stone-950 text-white text-[14px] font-medium hover:bg-stone-800 transition-[background-color,transform] duration-150 active:scale-[0.97]"
         >
           + New Campaign
         </button>

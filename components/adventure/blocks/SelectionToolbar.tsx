@@ -13,7 +13,7 @@ interface SelectionToolbarProps {
 }
 
 const btn =
-  'flex items-center justify-center w-7 h-7 rounded text-stone-300 hover:text-white hover:bg-white/10 transition-colors duration-100 text-[13px] font-medium select-none cursor-pointer';
+  'flex items-center justify-center w-7 h-7 rounded text-stone-300 hover:text-white hover:bg-white/10 transition-[background-color,color,transform] duration-100 active:scale-[0.9] text-[13px] font-medium select-none cursor-pointer';
 const divider = 'w-px h-4 bg-stone-700 mx-0.5 shrink-0';
 
 export default function SelectionToolbar({

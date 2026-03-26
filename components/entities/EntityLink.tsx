@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { EntityPopoverCard } from './EntitySummaryCard';
-import { useEntityDrawer } from './EntityDrawerContext';
+import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { EntityPopoverCard } from "./EntitySummaryCard";
+import { useEntityDrawer } from "./EntityDrawerContext";
 
 interface EntityLinkProps {
   /** Entity slug */
@@ -43,7 +43,7 @@ export default function EntityLink({ id, children }: EntityLinkProps) {
         <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-72 bg-white rounded-xl shadow-xl border border-[oklch(92.8%_0.006_264.5)] overflow-hidden">
           <EntityPopoverCard entity={entity} />
           {/* Caret */}
-          <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[oklch(92.8%_0.006_264.5)] rotate-45" />
+          <div className="absolute -bottom-1.25 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-b border-r border-[oklch(92.8%_0.006_264.5)] rotate-45" />
         </div>
       )}
     </span>

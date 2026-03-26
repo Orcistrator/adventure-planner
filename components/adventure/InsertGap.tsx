@@ -64,7 +64,7 @@ export default function InsertGap({
         <div className="flex-1 h-px bg-gray-200" />
         <button
           onClick={() => setPickerOpen((v) => !v)}
-          className="flex items-center justify-center w-5 h-5 rounded-full bg-white border border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors duration-100 shadow-sm"
+          className="flex items-center justify-center w-5 h-5 rounded-full bg-white border border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-[background-color,border-color,color,transform] duration-100 active:scale-90 shadow-sm"
           title="Insert block"
         >
           <Plus size={11} strokeWidth={2.5} />
@@ -81,7 +81,7 @@ export default function InsertGap({
               <button
                 key={type}
                 onClick={() => handleAdd(type)}
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors duration-100"
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-[background-color,transform] duration-100 active:scale-[0.97]"
               >
                 <span className="text-gray-400">{icon}</span>
                 {label}

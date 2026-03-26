@@ -65,7 +65,7 @@ export function CampaignCard({ campaign, onEdit }: CampaignCardProps) {
         </div>
         <button
           onClick={() => onEdit(campaign)}
-          className="content-center rounded-lg top-1.5 right-[14px] absolute bg-[oklab(0%_0_0/30%)] p-1.5 hover:bg-[oklab(0%_0_0/50%)] transition-colors"
+          className="content-center rounded-lg top-1.5 right-[14px] absolute bg-[oklab(0%_0_0/30%)] p-1.5 hover:bg-[oklab(0%_0_0/50%)] transition-[background-color,transform] duration-100 active:scale-90"
           aria-label="Edit campaign"
         >
           <svg
