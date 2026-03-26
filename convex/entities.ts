@@ -98,9 +98,9 @@ export const list = query({
       return ctx.db
         .query('entities')
         .withIndex('by_type', (q) => q.eq('type', args.type!))
-        .collect();
+        .take(500);
     }
-    return ctx.db.query('entities').collect();
+    return ctx.db.query('entities').take(500);
   },
 });
 

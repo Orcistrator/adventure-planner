@@ -6,7 +6,7 @@ export const listForCampaign = query({
   handler: async (ctx, args) => {
     const links = await ctx.db
       .query('campaignAdventures')
-      .withIndex('by_campaign', (q) => q.eq('campaignId', args.campaignId))
+      .withIndex('by_campaign_and_adventure', (q) => q.eq('campaignId', args.campaignId))
       .take(100);
     const adventures = await Promise.all(links.map((l) => ctx.db.get(l.adventureId)));
     return adventures.filter((a) => a !== null);

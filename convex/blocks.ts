@@ -41,10 +41,9 @@ export const add = mutation({
       const nextBlock = await ctx.db
         .query('blocks')
         .withIndex('by_adventure_page_and_order', (q) =>
-          q.eq('adventureId', args.adventureId).eq('page', args.page)
+          q.eq('adventureId', args.adventureId).eq('page', args.page).gt('order', args.afterOrder!)
         )
         .order('asc')
-        .filter((q) => q.gt(q.field('order'), args.afterOrder!))
         .first();
 
       order = nextBlock

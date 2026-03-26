@@ -27,7 +27,6 @@ export default defineSchema({
     campaignId: v.id('campaigns'),
     adventureId: v.id('adventures'),
   })
-    .index('by_campaign', ['campaignId'])
     .index('by_adventure', ['adventureId'])
     .index('by_campaign_and_adventure', ['campaignId', 'adventureId']),
 
