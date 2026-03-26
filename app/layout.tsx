@@ -4,6 +4,7 @@ import { Figtree, Faculty_Glyphic } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import ConvexClientProvider from '@/components/providers/ConvexClientProvider';
+import { Agentation } from 'agentation';
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({
         <ConvexClientProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ConvexClientProvider>
+        {process.env.NODE_ENV === 'development' && <Agentation />}
       </body>
     </html>
   );
