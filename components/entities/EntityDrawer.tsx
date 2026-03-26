@@ -354,7 +354,10 @@ export function EntityDrawer({ onEdit }: { onEdit?: (entity: Doc<'entities'>) =>
       noBodyStyles
     >
       <DrawerPortal>
-        <VaulDrawer.Content className="group/drawer-content fixed inset-x-0 bottom-0 z-50 flex flex-col max-h-[85vh] rounded-t-xl border-t border-[oklch(92.2%_0_0)] bg-white [box-shadow:0_-8px_32px_oklch(0%_0_0/10%)] focus:outline-none">
+        <VaulDrawer.Content
+          aria-describedby={undefined}
+          className="group/drawer-content fixed inset-x-0 bottom-0 z-50 flex flex-col max-h-[85vh] rounded-t-xl border-t border-[oklch(92.2%_0_0)] bg-white [box-shadow:0_-8px_32px_oklch(0%_0_0/10%)] focus:outline-none"
+        >
           {/* Grab handle */}
           <div className="mx-auto mt-4 h-1 w-[100px] shrink-0 rounded-full bg-stone-200" />
           <DrawerTitle className="sr-only">{displayEntity?.name ?? 'Entity details'}</DrawerTitle>
