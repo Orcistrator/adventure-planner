@@ -9,6 +9,7 @@ import ReadAloudBlock from './blocks/ReadAloudBlock';
 import EncounterBlock from './blocks/EncounterBlock';
 import TreasureTableBlock from './blocks/TreasureTableBlock';
 import DividerBlock from './blocks/DividerBlock';
+import ImageBlock from './blocks/ImageBlock';
 
 interface BlockRendererProps {
   block: Doc<'blocks'>;
@@ -91,6 +92,8 @@ export default function BlockRenderer({
         return <TreasureTableBlock id={block._id} title={block.title} items={block.items} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'divider':
         return <DividerBlock />;
+      case 'image':
+        return <ImageBlock id={block._id} url={block.url} caption={block.caption} isEditing={isEditing} editTrigger={editTrigger} />;
       default:
         return null;
     }

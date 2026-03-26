@@ -29,7 +29,8 @@ export const add = mutation({
       v.literal('read-aloud'),
       v.literal('encounter'),
       v.literal('treasure-table'),
-      v.literal('divider')
+      v.literal('divider'),
+      v.literal('image')
     ),
     page: v.number(),
     afterOrder: v.optional(v.number()),
@@ -120,6 +121,8 @@ function getDefaults(
       return { ...base, type: 'treasure-table', title: 'New Treasure Table', items: [] };
     case 'divider':
       return { ...base, type: 'divider' };
+    case 'image':
+      return { ...base, type: 'image', url: '' };
     default:
       return { ...base, type: 'text', markdown: '' };
   }

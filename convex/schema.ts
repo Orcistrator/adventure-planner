@@ -79,6 +79,14 @@ export default defineSchema({
         order: v.number(),
         type: v.literal('divider'),
       }),
+      v.object({
+        adventureId: v.id('adventures'),
+        page: v.optional(v.number()),
+        order: v.number(),
+        type: v.literal('image'),
+        url: v.string(),
+        caption: v.optional(v.string()),
+      }),
     )
   ).index('by_adventure_page_and_order', ['adventureId', 'page', 'order']),
 
