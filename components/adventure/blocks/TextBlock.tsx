@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import SelectionToolbar from './SelectionToolbar';
+import EntityLink from '@/components/entities/EntityLink';
 
 interface TextBlockProps {
   id: Id<'blocks'>;
@@ -25,9 +26,14 @@ const headingClasses: Record<number, string> = {
   4: 'font-heading text-xl font-semibold text-gray-900 mt-5 mb-2',
 };
 
+// Matches: @[Name](slug), **bold**, *italic*
+const INLINE_SPLIT = /(@\[[^\]]+\]\([^)]+\)|\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g;
+
 function renderInline(text: string): React.ReactNode[] {
-  const parts = text.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g);
+  const parts = text.split(INLINE_SPLIT);
   return parts.map((part, i) => {
+    const mentionMatch = part.match(/^@\[([^\]]+)\]\(([^)]+)\)$/);
+    if (mentionMatch) return <EntityLink key={i} id={mentionMatch[2]}>{mentionMatch[1]}</EntityLink>;
     if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={i}>{part.slice(2, -2)}</strong>;
     if (/^\*[^*]+\*$/.test(part)) return <em key={i}>{part.slice(1, -1)}</em>;
     return part;
@@ -74,6 +80,21 @@ function MarkdownView({ text }: { text: string }) {
   return <p className="text-gray-700 leading-relaxed">{renderInline(text)}</p>;
 }
 
+// ─── Entity type pill colors ───────────────────────────────────────────────
+
+const TYPE_LABEL: Record<string, string> = {
+  monster: 'Monster',
+  character: 'NPC',
+  item: 'Item',
+  location: 'Location',
+};
+const TYPE_COLOR: Record<string, string> = {
+  monster: 'bg-red-50 text-red-600',
+  character: 'bg-blue-50 text-blue-600',
+  item: 'bg-amber-50 text-amber-600',
+  location: 'bg-green-50 text-green-600',
+};
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function TextBlock({
@@ -88,6 +109,11 @@ export default function TextBlock({
   const [draft, setDraft] = useState(markdown);
   const [toolbarRect, setToolbarRect] = useState<DOMRect | null>(null);
 
+  // @ mention state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionStart, setMentionStart] = useState(0);
+  const [mentionIndex, setMentionIndex] = useState(0);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,8 +123,17 @@ export default function TextBlock({
   const historyIdxRef = useRef(-1);
 
   const updateBlock = useMutation(api.blocks.update);
+  const allEntities = useQuery(api.entities.list, isEditing ? {} : 'skip');
+
+  const mentionResults: Doc<'entities'>[] =
+    mentionQuery !== null && allEntities
+      ? allEntities
+          .filter((e) => e.name.toLowerCase().includes(mentionQuery.toLowerCase()))
+          .slice(0, 8)
+      : [];
 
   useEffect(() => { setDraft(markdown); }, [markdown]);
+  useEffect(() => { setMentionIndex(0); }, [mentionQuery]);
 
   // Auto-resize
   useEffect(() => {
@@ -160,7 +195,10 @@ export default function TextBlock({
 
   const handleBlur = () => {
     save(draft);
-    blurTimerRef.current = setTimeout(() => setToolbarRect(null), 200);
+    blurTimerRef.current = setTimeout(() => {
+      setToolbarRect(null);
+      setMentionQuery(null);
+    }, 200);
   };
 
   const handleFocus = () => {
@@ -169,11 +207,54 @@ export default function TextBlock({
     if (historyRef.current.length === 0) pushHistory(draft);
   };
 
+  // ─── @ mention detection ───────────────────────────────────────────────────
+
+  const detectMention = (val: string, cursor: number) => {
+    const textBeforeCursor = val.slice(0, cursor);
+    const lastAt = textBeforeCursor.lastIndexOf('@');
+    if (lastAt !== -1) {
+      const afterAt = textBeforeCursor.slice(lastAt + 1);
+      // Don't trigger on already-formatted mentions (@[...]) or across newlines
+      if (!afterAt.includes('\n') && !afterAt.startsWith('[')) {
+        setMentionQuery(afterAt);
+        setMentionStart(lastAt);
+        return;
+      }
+    }
+    setMentionQuery(null);
+  };
+
+  // ─── Insert entity mention ─────────────────────────────────────────────────
+
+  const selectMention = useCallback((entity: Doc<'entities'>) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const cursor = ta.selectionStart ?? draft.length;
+    const before = draft.slice(0, mentionStart);
+    const after = draft.slice(cursor);
+    const mention = `@[${entity.name}](${entity.slug})`;
+    const newDraft = before + mention + after;
+
+    setDraft(newDraft);
+    setMentionQuery(null);
+    pushHistory(newDraft);
+    save(newDraft);
+
+    requestAnimationFrame(() => {
+      if (!ta) return;
+      ta.focus();
+      const newPos = mentionStart + mention.length;
+      ta.setSelectionRange(newPos, newPos);
+    });
+  }, [draft, mentionStart, save, pushHistory]);
+
   // ─── Text change ───────────────────────────────────────────────────────────
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
+    const cursor = e.target.selectionStart ?? val.length;
     setDraft(val);
+    detectMention(val, cursor);
     // Debounced history snapshot for undo
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => pushHistory(val), 500);
@@ -262,6 +343,30 @@ export default function TextBlock({
   // ─── Keyboard ─────────────────────────────────────────────────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Mention dropdown navigation
+    if (mentionQuery !== null) {
+      if (e.key === 'ArrowDown' && mentionResults.length > 0) {
+        e.preventDefault();
+        setMentionIndex((i) => Math.min(i + 1, mentionResults.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp' && mentionResults.length > 0) {
+        e.preventDefault();
+        setMentionIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' && mentionResults.length > 0) {
+        e.preventDefault();
+        selectMention(mentionResults[mentionIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMentionQuery(null);
+        return;
+      }
+    }
+
     // Undo
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
@@ -288,6 +393,17 @@ export default function TextBlock({
     }
   };
 
+  // Close mention if cursor moves before @
+  const handleSelect = () => {
+    checkSelection();
+    if (mentionQuery !== null) {
+      const ta = textareaRef.current;
+      if (ta && ta.selectionStart <= mentionStart) {
+        setMentionQuery(null);
+      }
+    }
+  };
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (!isEditing) {
@@ -295,7 +411,7 @@ export default function TextBlock({
   }
 
   return (
-    <>
+    <div className="relative">
       <textarea
         ref={textareaRef}
         value={draft}
@@ -303,13 +419,41 @@ export default function TextBlock({
         onBlur={handleBlur}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
-        onSelect={checkSelection}
-        onMouseUp={checkSelection}
-        onKeyUp={checkSelection}
+        onSelect={handleSelect}
+        onMouseUp={handleSelect}
+        onKeyUp={handleSelect}
         placeholder="Start writing…"
         className="w-full resize-none bg-transparent text-gray-700 leading-relaxed text-base outline-none placeholder:text-gray-300 min-h-[1.75rem] block"
         rows={1}
       />
+
+      {/* @ mention dropdown */}
+      {mentionQuery !== null && mentionResults.length > 0 && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-72 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+          {mentionResults.map((entity, i) => (
+            <button
+              key={entity._id}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                i === mentionIndex ? 'bg-gray-50' : 'hover:bg-gray-50'
+              }`}
+              onMouseDown={(e) => { e.preventDefault(); selectMention(entity); }}
+              onMouseEnter={() => setMentionIndex(i)}
+            >
+              <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${TYPE_COLOR[entity.type]}`}>
+                {TYPE_LABEL[entity.type]}
+              </span>
+              <span className="truncate text-gray-900">{entity.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Show hint when @ typed but no results yet */}
+      {mentionQuery !== null && mentionQuery.length === 0 && (
+        <div className="absolute left-0 top-full z-50 mt-1 rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs text-gray-400 shadow-xl">
+          Type to search entities…
+        </div>
+      )}
 
       {toolbarRect && (
         <SelectionToolbar
@@ -321,6 +465,6 @@ export default function TextBlock({
           onSetHeading={applyHeadingPrefix}
         />
       )}
-    </>
+    </div>
   );
 }

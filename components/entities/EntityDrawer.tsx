@@ -351,6 +351,7 @@ export function EntityDrawer({ onEdit }: { onEdit?: (entity: Doc<'entities'>) =>
       onOpenChange={(o) => { if (!o) setOpen(false); }}
       onClose={close}
       direction="bottom"
+      noBodyStyles
     >
       <DrawerPortal>
         {/* Transparent overlay — catches outside clicks to close, no blur */}
