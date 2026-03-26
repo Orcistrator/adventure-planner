@@ -34,7 +34,7 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 - `blocks` uses a **union type** with six variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`
 - Block ordering uses **floating-point fractional ordering** — new blocks inserted between two existing blocks get order `(a + b) / 2`, avoiding full reorders
 - `blocks.page` supports future multi-page documents; currently always `1`
-- `lib/data.ts` contains hardcoded seed entities used by `EncounterTracker` — migration path is `useQuery(api.entities.list)`
+- `lib/data.ts` contains hardcoded seed entities (no longer used by `EncounterTracker`, which now fetches live from `useQuery(api.entities.list)`)
 
 **Always read `convex/_generated/ai/guidelines.md` before writing any Convex code.** Key rules:
 - Always include argument validators on every function
@@ -86,6 +86,14 @@ The **SelectionToolbar** floats above the textarea when text is selected. It use
 
 **InsertGap** renders a hover zone between every pair of blocks in edit mode. On click it opens a menu of insertable block types (all except text, which is created via Enter key). The `add` mutation returns the new block's ID; `BlockList` uses this to set `pendingFocusId` for auto-focus.
 
+**Block action strip**: In edit mode, hovering a block reveals a left-side action strip (`absolute right-full top-2`) anchored outside the block's left edge. It contains:
+- **Pencil** (stone/gray) — only shown for `encounter`, `read-aloud`, and `treasure-table` blocks; triggers edit mode via an `editTrigger` counter prop
+- **Trash** (red on hover) — deletes the block; for text blocks also re-focuses the nearest previous text block
+
+`BlockRenderer` no longer owns any action chrome. All block-level actions live in `BlockList`'s hover strip.
+
+**`editTrigger` pattern**: `BlockList` holds `editTriggers: Record<string, number>`. Clicking the pencil increments the counter for that block's ID. `BlockRenderer` passes it down; each editable block watches it with `useEffect(() => { if (editTrigger) setEditOpen(true); }, [editTrigger])`. This avoids `useImperativeHandle`/refs while keeping edit state local to each block.
+
 **ToC extraction** (in `AdventureView`) handles both legacy heading blocks and `#`-prefixed text blocks:
 ```ts
 const m = block.markdown.match(/^(#{1,4})\s+(.+)/);
@@ -98,6 +106,8 @@ Entities have four types: `monster`, `character`, `item`, `location`. Each is a 
 **`EntityDrawerContext`** (provided in `app/(main)/layout.tsx`) is the global controller for the entity detail drawer. Call `open(entity)` from anywhere to show the drawer. The Vaul bottom drawer uses `noBodyStyles` and the app-wide `overflow: auto !important` CSS rule so the drawer never locks body scroll — users can keep scrolling the adventure while an entity drawer is open.
 
 **`EntityLink`** renders inline entity mentions in view mode. It fetches the entity by slug via `useQuery(api.entities.getBySlug)`, shows an indigo dashed-underline style, opens a hover popover (portal-rendered via `createPortal` to avoid nesting `<div>` inside `<p>`), and opens the drawer on click. The popover also uses `createPortal` with `position: fixed` coordinates derived from `getBoundingClientRect()`.
+
+The same hover-popover pattern is reused in `EncounterTracker` via a local `MonsterName` sub-component — same `onMouseEnter` → `getBoundingClientRect` → portal approach, no shared abstraction needed.
 
 **`EntitySummaryCard` / `EntityPopoverCard`**: shared card components used on the entity browser grid and in the `EntityLink` hover popover. `TYPE_CONFIG` (defined in `EntitySummaryCard.tsx`) is the shared source of truth for entity type labels, badge colors, and icon backgrounds.
 
@@ -115,8 +125,25 @@ Metadata inputs in edit mode:
 - **Type**: shadcn `<Select>` from `ADVENTURE_TYPES` preset, each with a Lucide icon
 - **Cover image**: URL input, top-right corner overlay
 
+### Encounter Block
+
+`EncounterBlock` is the edit-mode shell; `EncounterTracker` is the full view-mode combat interface.
+
+**Edit mode** (opened via the left action strip pencil): entity picker for `monster` and `character` types with searchable dropdown showing avatar + AC/HP preview. Entities are fetched via `useQuery(api.entities.list, editOpen ? {} : 'skip')`.
+
+**`EncounterTracker`** (view mode only, all state is client-side / not persisted):
+- Fetches entities once via `useQuery(api.entities.list, {})` and initialises combatants on first load (guarded by `initialized` ref to avoid resetting live state)
+- **Initiative**: editable number input per combatant; list auto-sorts descending (nulls last) using Framer Motion `layout` animation
+- **HP tracking**: modifier input per monster — type `-4` (damage) or `4` (heal), press Enter; clamped to `[0, maxHp]`; zero-HP combatants dim to 40% opacity
+- **HP feedback**: transient `AnimatePresence` label ("4 damage" / "+4 healed") slides in at 150ms ease-out, floats up and fades at 400ms ease-out, auto-clears after 1.6s; uses `id: Date.now()` as key so rapid hits each re-animate
+- **Players**: "Add player" button creates temporary combatants (name + initiative only, no HP); removed via hover ✕
+- **Reset**: `RotateCcw` button in the header restores all monster HP to max, clears initiative, removes players
+- Clicking a monster name or avatar opens `EntityDrawerContext` drawer; hovering the name shows `EntityPopoverCard` via the same portal pattern as `EntityLink`
+
 ### Styling
 
 Tailwind v4 via `@tailwindcss/postcss`. Theme tokens are defined in `app/globals.css` using `@theme` — there is no `tailwind.config`. Fonts: `Figtree` → `--font-sans` / `font-sans`, `Faculty_Glyphic` → `--font-heading` / `font-heading`. Two custom utility classes: `.drop-cap` and `.read-aloud`.
+
+`components/ui/input.tsx` is a **shadcn-style** `<input>` wrapper (plain HTML input, not Base UI). It applies `border-input`, `ring-ring/50` focus ring, and `shadow-xs`. Use it for all form inputs; override width/padding via `className`.
 
 `app/globals.css` sets `body { overflow: auto !important; padding-right: 0 !important; }` — this intentionally overrides Vaul's scroll-lock behaviour so entity drawers don't shift the page layout or block scrolling.
