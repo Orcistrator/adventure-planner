@@ -24,7 +24,7 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 | `/` | Campaigns list |
 | `/adventure/[id]` | Adventure viewer/editor (slug-based) |
 | `/adventures` | Adventures list |
-| `/entities`, `/items`, `/bestiary` | Entity browsers (partially wired) |
+| `/entities` | Entity browser |
 
 ### Data Layer
 
@@ -38,10 +38,11 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 
 **Always read `convex/_generated/ai/guidelines.md` before writing any Convex code.** Key rules:
 - Always include argument validators on every function
-- Use `withIndex` instead of `filter` on queries
+- Use `withIndex` instead of `filter` on queries — Convex `.filter()` does NOT push to storage
 - Never use `.collect()` without a bound — prefer `.take(n)` or paginate
 - Index names must match their fields (e.g. `by_campaign_and_adventure`)
 - `"use node"` files cannot export queries or mutations
+- `campaignAdventures` only has `by_adventure` and `by_campaign_and_adventure` indexes — `by_campaign_and_adventure` handles prefix-only campaign queries too
 
 ### Adventure Page
 
@@ -73,10 +74,13 @@ AdventureView
 - `# ` / `## ` / `### ` / `#### ` prefix → rendered as headings (also used for ToC extraction)
 - `**text**` / `*text*` → bold / italic inline
 - `- ` / `1. ` prefix → bullet / ordered lists
+- `@[Name](slug)` → entity mention, rendered as `EntityLink` in view mode
 
 TextBlock has a **client-side undo system** (`historyRef` array capped at 100, `historyIdxRef` pointer) with debounced snapshots (500ms) and Ctrl/Cmd+Z support. Snapshots are also taken before formatting actions.
 
 The **SelectionToolbar** floats above the textarea when text is selected. It uses `onMouseDown: e.preventDefault()` to preserve textarea focus/selection when clicking toolbar buttons.
+
+**Entity mention flow** (edit mode): typing `@` opens a portal-rendered dropdown positioned directly below the caret using a mirror-div technique (`getCaretPosition` in `TextBlock.tsx`). Arrow keys / Enter / Tab navigate and select. Selecting inserts `@[Name](slug)` into the draft. The dropdown fetches all entities via `useQuery(api.entities.list, isEditing ? {} : 'skip')`.
 
 **Legacy heading blocks**: `heading`-type blocks still exist in the DB. `BlockRenderer` wraps them in `LegacyHeadingBlock`, which renders them correctly in view mode and auto-fires the `convertHeadingToText` mutation (delete + re-insert as `text` block with `#` prefix) when edit mode is entered.
 
@@ -86,6 +90,16 @@ The **SelectionToolbar** floats above the textarea when text is selected. It use
 ```ts
 const m = block.markdown.match(/^(#{1,4})\s+(.+)/);
 ```
+
+### Entity System
+
+Entities have four types: `monster`, `character`, `item`, `location`. Each is a large document with type-specific fields (stats, abilities, roll tables, etc.).
+
+**`EntityDrawerContext`** (provided in `app/(main)/layout.tsx`) is the global controller for the entity detail drawer. Call `open(entity)` from anywhere to show the drawer. The Vaul bottom drawer uses `noBodyStyles` and the app-wide `overflow: auto !important` CSS rule so the drawer never locks body scroll — users can keep scrolling the adventure while an entity drawer is open.
+
+**`EntityLink`** renders inline entity mentions in view mode. It fetches the entity by slug via `useQuery(api.entities.getBySlug)`, shows an indigo dashed-underline style, opens a hover popover (portal-rendered via `createPortal` to avoid nesting `<div>` inside `<p>`), and opens the drawer on click. The popover also uses `createPortal` with `position: fixed` coordinates derived from `getBoundingClientRect()`.
+
+**`EntitySummaryCard` / `EntityPopoverCard`**: shared card components used on the entity browser grid and in the `EntityLink` hover popover. `TYPE_CONFIG` (defined in `EntitySummaryCard.tsx`) is the shared source of truth for entity type labels, badge colors, and icon backgrounds.
 
 ### Campaigns
 
@@ -104,3 +118,5 @@ Metadata inputs in edit mode:
 ### Styling
 
 Tailwind v4 via `@tailwindcss/postcss`. Theme tokens are defined in `app/globals.css` using `@theme` — there is no `tailwind.config`. Fonts: `Figtree` → `--font-sans` / `font-sans`, `Faculty_Glyphic` → `--font-heading` / `font-heading`. Two custom utility classes: `.drop-cap` and `.read-aloud`.
+
+`app/globals.css` sets `body { overflow: auto !important; padding-right: 0 !important; }` — this intentionally overrides Vaul's scroll-lock behaviour so entity drawers don't shift the page layout or block scrolling.
