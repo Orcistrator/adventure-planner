@@ -154,6 +154,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow: auto !important;
+    padding-right: 0 !important;
   }
   html {
     @apply font-sans;

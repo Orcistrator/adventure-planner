@@ -1,11 +1,39 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import SelectionToolbar from './SelectionToolbar';
 import EntityLink from '@/components/entities/EntityLink';
+
+// ─── Caret position helper ────────────────────────────────────────────────────
+
+function getCaretPosition(textarea: HTMLTextAreaElement, index: number) {
+  const mirror = document.createElement('div');
+  const s = getComputedStyle(textarea);
+  Object.assign(mirror.style, {
+    position: 'absolute', top: '0', left: '-9999px',
+    width: s.width,
+    paddingTop: s.paddingTop, paddingRight: s.paddingRight,
+    paddingBottom: s.paddingBottom, paddingLeft: s.paddingLeft,
+    fontSize: s.fontSize, fontFamily: s.fontFamily,
+    fontWeight: s.fontWeight, lineHeight: s.lineHeight,
+    letterSpacing: s.letterSpacing, whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word', overflow: 'hidden',
+  });
+  mirror.textContent = textarea.value.slice(0, index);
+  const marker = document.createElement('span');
+  marker.textContent = '\u200b';
+  mirror.appendChild(marker);
+  document.body.appendChild(mirror);
+  const top = marker.offsetTop;
+  const left = marker.offsetLeft;
+  const lineHeight = parseFloat(s.lineHeight) || 20;
+  document.body.removeChild(mirror);
+  return { top, left, lineHeight };
+}
 
 interface TextBlockProps {
   id: Id<'blocks'>;
@@ -113,6 +141,7 @@ export default function TextBlock({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStart, setMentionStart] = useState(0);
   const [mentionIndex, setMentionIndex] = useState(0);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,9 +182,9 @@ export default function TextBlock({
     }
   }, [autoFocus, onFocused]);
 
-  // Hide toolbar on scroll
+  // Hide toolbar + mention dropdown on scroll
   useEffect(() => {
-    const hide = () => setToolbarRect(null);
+    const hide = () => { setToolbarRect(null); setMentionQuery(null); };
     window.addEventListener('scroll', hide, { passive: true });
     return () => window.removeEventListener('scroll', hide);
   }, []);
@@ -198,6 +227,7 @@ export default function TextBlock({
     blurTimerRef.current = setTimeout(() => {
       setToolbarRect(null);
       setMentionQuery(null);
+      setDropdownPos(null);
     }, 200);
   };
 
@@ -218,10 +248,21 @@ export default function TextBlock({
       if (!afterAt.includes('\n') && !afterAt.startsWith('[')) {
         setMentionQuery(afterAt);
         setMentionStart(lastAt);
+        // Compute caret position for dropdown
+        const ta = textareaRef.current;
+        if (ta) {
+          const { top, left, lineHeight } = getCaretPosition(ta, lastAt);
+          const rect = ta.getBoundingClientRect();
+          setDropdownPos({
+            top: rect.top + top + lineHeight,
+            left: rect.left + left,
+          });
+        }
         return;
       }
     }
     setMentionQuery(null);
+    setDropdownPos(null);
   };
 
   // ─── Insert entity mention ─────────────────────────────────────────────────
@@ -237,6 +278,7 @@ export default function TextBlock({
 
     setDraft(newDraft);
     setMentionQuery(null);
+    setDropdownPos(null);
     pushHistory(newDraft);
     save(newDraft);
 
@@ -355,7 +397,7 @@ export default function TextBlock({
         setMentionIndex((i) => Math.max(i - 1, 0));
         return;
       }
-      if (e.key === 'Enter' && mentionResults.length > 0) {
+      if ((e.key === 'Enter' || e.key === 'Tab') && mentionResults.length > 0) {
         e.preventDefault();
         selectMention(mentionResults[mentionIndex]);
         return;
@@ -363,6 +405,7 @@ export default function TextBlock({
       if (e.key === 'Escape') {
         e.preventDefault();
         setMentionQuery(null);
+        setDropdownPos(null);
         return;
       }
     }
@@ -427,9 +470,12 @@ export default function TextBlock({
         rows={1}
       />
 
-      {/* @ mention dropdown */}
-      {mentionQuery !== null && mentionResults.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-72 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+      {/* @ mention dropdown — portal so it renders outside any ancestor */}
+      {mentionQuery !== null && mentionResults.length > 0 && dropdownPos && createPortal(
+        <div
+          style={{ position: 'fixed', top: dropdownPos.top + 4, left: dropdownPos.left, zIndex: 9999 }}
+          className="w-64 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl"
+        >
           {mentionResults.map((entity, i) => (
             <button
               key={entity._id}
@@ -445,14 +491,8 @@ export default function TextBlock({
               <span className="truncate text-gray-900">{entity.name}</span>
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Show hint when @ typed but no results yet */}
-      {mentionQuery !== null && mentionQuery.length === 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs text-gray-400 shadow-xl">
-          Type to search entities…
-        </div>
+        </div>,
+        document.body
       )}
 
       {toolbarRect && (
