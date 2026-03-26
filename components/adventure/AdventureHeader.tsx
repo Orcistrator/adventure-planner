@@ -138,7 +138,7 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
       <header className="relative h-125 flex items-end pb-10 overflow-hidden">
         <div className="absolute inset-0 z-0">
           {coverImage ? (
-            <Image src={coverImage} alt="" fill unoptimized className="object-cover" />
+            <Image src={coverImage} alt="" fill unoptimized priority className="object-cover" />
           ) : (
             <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
           )}
@@ -249,7 +249,7 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
     >
       <div className="absolute inset-0 z-0">
         {coverImage ? (
-          <Image src={coverImage} alt="" fill unoptimized className="object-cover" />
+          <Image src={coverImage} alt="" fill unoptimized priority className="object-cover" />
         ) : (
           <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
         )}
