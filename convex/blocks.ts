@@ -118,7 +118,7 @@ function getDefaults(
     case 'encounter':
       return { ...base, type: 'encounter', title: 'New Encounter', monsters: [] };
     case 'treasure-table':
-      return { ...base, type: 'treasure-table', title: 'New Treasure Table', items: [] };
+      return { ...base, type: 'treasure-table', title: 'New Table', items: [] };
     case 'divider':
       return { ...base, type: 'divider' };
     case 'image':

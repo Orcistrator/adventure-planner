@@ -26,37 +26,42 @@ export default function TreasureTableBlock({ id, title, items, isEditing, editTr
   useEffect(() => {
     if (editTrigger) setEditOpen(true);
   }, [editTrigger]);
+
   const [draftTitle, setDraftTitle] = useState(title);
-  const [draftItems, setDraftItems] = useState<TableItem[]>(items);
+  const [draftResults, setDraftResults] = useState<string[]>(items.map((i) => i.result));
   const updateBlock = useMutation(api.blocks.update);
 
   useEffect(() => {
     setDraftTitle(title);
-    setDraftItems(items);
+    setDraftResults(items.map((i) => i.result));
   }, [title, items]);
 
   const save = () => {
-    updateBlock({ id, patch: { title: draftTitle, items: draftItems } });
+    const computedItems = draftResults.map((result, idx) => ({
+      roll: String(idx + 1),
+      result,
+    }));
+    updateBlock({ id, patch: { title: draftTitle, items: computedItems } });
     setEditOpen(false);
   };
 
-  const updateItem = (idx: number, field: keyof TableItem, value: string) => {
-    setDraftItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  const updateResult = (idx: number, value: string) => {
+    setDraftResults((prev) => prev.map((r, i) => (i === idx ? value : r)));
   };
 
   const addItem = () => {
-    setDraftItems((prev) => [...prev, { roll: '', result: '' }]);
+    setDraftResults((prev) => [...prev, '']);
   };
 
   const removeItem = (idx: number) => {
-    setDraftItems((prev) => prev.filter((_, i) => i !== idx));
+    setDraftResults((prev) => prev.filter((_, i) => i !== idx));
   };
 
   if (isEditing && editOpen) {
     return (
       <div className="my-6 border-2 border-amber-200 rounded-lg p-4 bg-amber-50/30">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold text-amber-700 uppercase tracking-wider">Treasure Table</span>
+          <span className="text-sm font-semibold text-amber-700 uppercase tracking-wider">Table</span>
           <button
             onClick={save}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-sm font-medium rounded hover:bg-amber-700"
@@ -73,22 +78,17 @@ export default function TreasureTableBlock({ id, title, items, isEditing, editTr
         />
 
         <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-[5rem_1fr_2rem] gap-2 text-xs font-semibold text-gray-500 uppercase px-1">
-            <span>Roll</span>
+          <div className="grid grid-cols-[2rem_1fr_2rem] gap-2 text-xs font-semibold text-gray-400 uppercase px-1">
+            <span className="text-center">#</span>
             <span>Result</span>
           </div>
-          {draftItems.map((item, idx) => (
-            <div key={idx} className="grid grid-cols-[5rem_1fr_2rem] gap-2 items-center">
+          {draftResults.map((result, idx) => (
+            <div key={idx} className="grid grid-cols-[2rem_1fr_2rem] gap-2 items-center">
+              <span className="text-xs font-mono text-gray-400 text-center tabular-nums">{idx + 1}</span>
               <input
-                value={item.roll}
-                onChange={(e) => updateItem(idx, 'roll', e.target.value)}
-                placeholder="01-20"
-                className="text-sm font-mono border border-gray-200 rounded p-1.5 outline-none focus:ring-1 focus:ring-amber-300 text-center"
-              />
-              <input
-                value={item.result}
-                onChange={(e) => updateItem(idx, 'result', e.target.value)}
-                placeholder="Item or description"
+                value={result}
+                onChange={(e) => updateResult(idx, e.target.value)}
+                placeholder="Result…"
                 className="text-sm border border-gray-200 rounded p-1.5 outline-none focus:ring-1 focus:ring-amber-300"
               />
               <button onClick={() => removeItem(idx)} className="text-gray-400 hover:text-red-500 justify-self-center">

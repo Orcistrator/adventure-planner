@@ -13,23 +13,37 @@ interface TreasureTableProps {
   items: TreasureTableItem[];
 }
 
+function getStandardDie(n: number): number {
+  const dice = [4, 6, 8, 10, 12, 20, 100];
+  return dice.find((d) => d >= n) ?? n;
+}
+
 export default function TreasureTable({ title, items }: TreasureTableProps) {
   const [rolledIndex, setRolledIndex] = useState<number | null>(null);
   const [isRolling, setIsRolling] = useState(false);
 
+  const dieSize = getStandardDie(items.length);
+
+  const pickResult = () => {
+    const roll = Math.floor(Math.random() * dieSize) + 1;
+    // Find matching item by roll value; fall back to clamping within range
+    const idx = items.findIndex((item) => parseInt(item.roll) === roll);
+    return idx >= 0 ? idx : Math.min(roll - 1, items.length - 1);
+  };
+
   const handleRoll = () => {
-    if (isRolling) return;
+    if (isRolling || items.length === 0) return;
     setIsRolling(true);
     setRolledIndex(null);
 
-    let rolls = 0;
+    let ticks = 0;
     const interval = setInterval(() => {
       setRolledIndex(Math.floor(Math.random() * items.length));
-      rolls++;
-      if (rolls > 10) {
+      ticks++;
+      if (ticks > 10) {
         clearInterval(interval);
         setIsRolling(false);
-        setRolledIndex(Math.floor(Math.random() * items.length));
+        setRolledIndex(pickResult());
       }
     }, 50);
   };
@@ -40,17 +54,17 @@ export default function TreasureTable({ title, items }: TreasureTableProps) {
         <h4 className="font-heading font-bold text-gray-900">{title}</h4>
         <button
           onClick={handleRoll}
-          disabled={isRolling}
+          disabled={isRolling || items.length === 0}
           className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition-colors disabled:opacity-50"
         >
           <Dice5 size={16} className={isRolling ? 'animate-spin' : ''} />
-          Roll
+          Roll d{dieSize}
         </button>
       </div>
       <table className="w-full text-sm text-left">
         <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
           <tr>
-            <th className="px-4 py-2 w-16 text-center">d100</th>
+            <th className="px-4 py-2 w-16 text-center">d{dieSize}</th>
             <th className="px-4 py-2">Result</th>
           </tr>
         </thead>
@@ -64,16 +78,14 @@ export default function TreasureTable({ title, items }: TreasureTableProps) {
             >
               <td
                 className={`px-4 py-3 text-center font-mono ${
-                  rolledIndex === idx
-                    ? 'text-indigo-700 font-bold'
-                    : 'text-gray-500'
+                  rolledIndex === idx ? 'text-indigo-700 font-bold' : 'text-gray-400'
                 }`}
               >
                 {item.roll}
               </td>
               <td
                 className={`px-4 py-3 ${
-                  rolledIndex === idx ? 'text-indigo-900' : 'text-gray-700'
+                  rolledIndex === idx ? 'text-indigo-900 font-medium' : 'text-gray-700'
                 }`}
               >
                 {item.result}
