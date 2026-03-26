@@ -12,8 +12,10 @@ export default defineSchema({
   adventures: defineTable({
     slug: v.string(),
     title: v.string(),
+    subtitle: v.optional(v.string()),
     level: v.optional(v.string()),
     type: v.optional(v.string()),
+    environment: v.optional(v.string()),
     tags: v.array(v.string()),
     coverImage: v.optional(v.string()),
     status: v.union(v.literal('draft'), v.literal('published')),
@@ -92,19 +94,76 @@ export default defineSchema({
     ),
     description: v.string(),
     image: v.optional(v.string()),
+    // Monster identity
+    size: v.optional(v.string()),
+    creatureType: v.optional(v.string()),
+    alignment: v.optional(v.string()),
+    // Combat + ability scores
     stats: v.optional(
       v.object({
         ac: v.optional(v.number()),
+        acNote: v.optional(v.string()),
         hp: v.optional(v.number()),
+        hpFormula: v.optional(v.string()),
         speed: v.optional(v.string()),
+        initiative: v.optional(v.number()),
         str: v.optional(v.number()),
         dex: v.optional(v.number()),
         con: v.optional(v.number()),
         int: v.optional(v.number()),
         wis: v.optional(v.number()),
         cha: v.optional(v.number()),
+        // Saving throw bonus overrides (if proficient)
+        strSave: v.optional(v.number()),
+        dexSave: v.optional(v.number()),
+        conSave: v.optional(v.number()),
+        intSave: v.optional(v.number()),
+        wisSave: v.optional(v.number()),
+        chaSave: v.optional(v.number()),
+        proficiencyBonus: v.optional(v.number()),
+        cr: v.optional(v.string()),
+        xp: v.optional(v.number()),
       })
     ),
+    // Proficiencies & traits
+    skills: v.optional(v.array(v.object({ name: v.string(), bonus: v.number() }))),
+    senses: v.optional(v.string()),
+    languages: v.optional(v.string()),
+    immunities: v.optional(v.string()),
+    resistances: v.optional(v.string()),
+    vulnerabilities: v.optional(v.string()),
+    conditionImmunities: v.optional(v.string()),
+    // Abilities (monster + NPC)
+    traits: v.optional(v.array(v.object({ name: v.string(), description: v.string() }))),
+    actions: v.optional(v.array(v.object({ name: v.string(), description: v.string() }))),
+    bonusActions: v.optional(v.array(v.object({ name: v.string(), description: v.string() }))),
+    reactions: v.optional(v.array(v.object({ name: v.string(), description: v.string() }))),
+    legendaryActionsDescription: v.optional(v.string()),
+    legendaryActions: v.optional(v.array(v.object({ name: v.string(), description: v.string() }))),
+    // NPC-specific
+    role: v.optional(v.string()),
+    race: v.optional(v.string()),
+    personality: v.optional(v.string()),
+    ideals: v.optional(v.string()),
+    bonds: v.optional(v.string()),
+    flaws: v.optional(v.string()),
+    backstory: v.optional(v.string()),
+    // Item-specific
+    itemType: v.optional(v.string()),
+    rarity: v.optional(v.string()),
+    requiresAttunement: v.optional(v.boolean()),
+    cost: v.optional(v.string()),
+    weight: v.optional(v.string()),
+    itemProperties: v.optional(v.string()),
+    // Location-specific
+    locationType: v.optional(v.string()),
+    region: v.optional(v.string()),
+    notableFeatures: v.optional(v.array(v.string())),
+    // Shared: roll tables (items + locations)
+    tables: v.optional(v.array(v.object({
+      title: v.string(),
+      rows: v.array(v.object({ roll: v.string(), result: v.string() })),
+    }))),
   })
     .index('by_slug', ['slug'])
     .index('by_type', ['type']),

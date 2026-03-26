@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Library, Map, Skull, Backpack, BookOpen } from 'lucide-react';
+import { Library, Map, BookOpen } from 'lucide-react';
 
 import {
   Sidebar,
@@ -24,8 +24,7 @@ import {
 
 const navItems = [
   { href: '/', label: 'Campaigns', icon: Map },
-  { href: '/bestiary', label: 'Bestiary', icon: Skull },
-  { href: '/items', label: 'Items Library', icon: Backpack },
+  { href: '/entities', label: 'Entities', icon: Library },
 ] as const;
 
 // Placeholder — will be driven by Convex once wired up

@@ -1,4 +1,6 @@
 import FloatingToolbar from '@/components/layout/FloatingToolbar';
+import { EntityDrawerProvider } from '@/components/entities/EntityDrawerContext';
+import { EntityDrawer } from '@/components/entities/EntityDrawer';
 
 export default function MainLayout({
   children,
@@ -6,9 +8,12 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen">
-      <FloatingToolbar />
-      {children}
-    </div>
+    <EntityDrawerProvider>
+      <div className="relative min-h-screen">
+        <FloatingToolbar />
+        {children}
+      </div>
+      <EntityDrawer />
+    </EntityDrawerProvider>
   );
 }

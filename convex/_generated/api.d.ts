@@ -13,6 +13,7 @@ import type * as blocks from "../blocks.js";
 import type * as campaignAdventures from "../campaignAdventures.js";
 import type * as campaigns from "../campaigns.js";
 import type * as entities from "../entities.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   campaignAdventures: typeof campaignAdventures;
   campaigns: typeof campaigns;
   entities: typeof entities;
+  seed: typeof seed;
 }>;
 
 /**
