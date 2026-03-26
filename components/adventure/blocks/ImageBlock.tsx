@@ -15,7 +15,7 @@ interface ImageBlockProps {
 }
 
 export default function ImageBlock({ id, url, caption, isEditing, editTrigger }: ImageBlockProps) {
-  const [editOpen, setEditOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(isEditing && url === '');
   const [draftUrl, setDraftUrl] = useState(url);
   const [draftCaption, setDraftCaption] = useState(caption ?? '');
   const updateBlock = useMutation(api.blocks.update);
@@ -28,11 +28,6 @@ export default function ImageBlock({ id, url, caption, isEditing, editTrigger }:
     setDraftUrl(url);
     setDraftCaption(caption ?? '');
   }, [url, caption]);
-
-  // Auto-open edit on first insert (empty url)
-  useEffect(() => {
-    if (isEditing && url === '') setEditOpen(true);
-  }, []);
 
   const save = () => {
     updateBlock({ id, patch: { url: draftUrl, caption: draftCaption || undefined } });

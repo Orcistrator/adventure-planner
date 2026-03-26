@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Plus, BookOpen, Swords, Gem, Minus, AlignLeft, Image } from "lucide-react";
+import { Plus, BookOpen, Swords, Gem, Minus, AlignLeft, Image as ImageIcon } from "lucide-react";
 
 const BLOCK_TYPES = [
   { type: "text", label: "Text", icon: <AlignLeft size={14} /> },
   { type: "read-aloud", label: "Read Aloud", icon: <BookOpen size={14} /> },
   { type: "encounter", label: "Encounter", icon: <Swords size={14} /> },
   { type: "treasure-table", label: "Table", icon: <Gem size={14} /> },
-  { type: "image", label: "Image", icon: <Image size={14} /> },
+  { type: "image", label: "Image", icon: <ImageIcon size={14} /> },
   { type: "divider", label: "Divider", icon: <Minus size={14} /> },
 ];
 

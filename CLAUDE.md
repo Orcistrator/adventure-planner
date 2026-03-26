@@ -31,7 +31,7 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 **Convex schema** has five tables: `campaigns`, `adventures`, `campaignAdventures` (join), `blocks`, `entities`.
 
 - Adventures are standalone — zero-to-many campaigns via `campaignAdventures` join table
-- `blocks` uses a **union type** with six variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`
+- `blocks` uses a **union type** with seven variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`, `image`
 - Block ordering uses **floating-point fractional ordering** — new blocks inserted between two existing blocks get order `(a + b) / 2`, avoiding full reorders
 - `blocks.page` supports future multi-page documents; currently always `1`
 - `lib/data.ts` contains hardcoded seed entities (no longer used by `EncounterTracker`, which now fetches live from `useQuery(api.entities.list)`)
@@ -86,8 +86,16 @@ The **SelectionToolbar** floats above the textarea when text is selected. It use
 
 **InsertGap** renders a hover zone between every pair of blocks in edit mode. On click it opens a menu of insertable block types (all except text, which is created via Enter key). The `add` mutation returns the new block's ID; `BlockList` uses this to set `pendingFocusId` for auto-focus.
 
+**Adding a new block type** requires changes in five places:
+1. `convex/schema.ts` — add a new `v.object({ type: v.literal('...'), ... })` variant to the blocks union
+2. `convex/blocks.ts` — add `v.literal('...')` to the `add` mutation args union, and a `case` in `getDefaults()`
+3. `components/adventure/InsertGap.tsx` — add entry to `BLOCK_TYPES` array
+4. `components/adventure/BlockRenderer.tsx` — import the component and add a `case` to the switch
+5. `components/adventure/BlockList.tsx` — add the type to the pencil-button visibility check if it has edit mode
+6. Create `components/adventure/blocks/YourBlock.tsx` — follow the dual-mode pattern: `useState(false)` for `editOpen`, watch `editTrigger` with `useEffect`, local draft state synced from props, save via `api.blocks.update`
+
 **Block action strip**: In edit mode, hovering a block reveals a left-side action strip (`absolute right-full top-2`) anchored outside the block's left edge. It contains:
-- **Pencil** (stone/gray) — only shown for `encounter`, `read-aloud`, and `treasure-table` blocks; triggers edit mode via an `editTrigger` counter prop
+- **Pencil** (stone/gray) — only shown for `encounter`, `read-aloud`, `treasure-table`, and `image` blocks; triggers edit mode via an `editTrigger` counter prop
 - **Trash** (red on hover) — deletes the block; for text blocks also re-focuses the nearest previous text block
 
 `BlockRenderer` no longer owns any action chrome. All block-level actions live in `BlockList`'s hover strip.
@@ -139,6 +147,22 @@ Metadata inputs in edit mode:
 - **Players**: "Add player" button creates temporary combatants (name + initiative only, no HP); removed via hover ✕
 - **Reset**: `RotateCcw` button in the header restores all monster HP to max, clears initiative, removes players
 - Clicking a monster name or avatar opens `EntityDrawerContext` drawer; hovering the name shows `EntityPopoverCard` via the same portal pattern as `EntityLink`
+
+### Table Block (`treasure-table`)
+
+Despite the schema type name `treasure-table`, these are general-purpose **roll tables** — any list of outcomes a DM might roll on. The "Table" label is used everywhere in the UI.
+
+**Edit mode**: title input + a list of result rows. Roll numbers are **auto-computed** (not manually entered) — each row gets a sequential integer starting at `1` on save. Only the result text is editable per row.
+
+**View mode** (`TreasureTable.tsx`): renders a styled table with a Roll button. Die size is inferred from item count via `getStandardDie(n)` — picks the smallest standard die (d4 → d6 → d8 → d10 → d12 → d20 → d100) that fits all rows. The Roll button label and column header update dynamically (e.g. "Roll d20"). The animation picks a random number 1–dieSize and highlights the matching row; rolls beyond the item count are handled gracefully.
+
+### Image Block
+
+Schema fields: `url: string`, `caption?: string`. Full-width image with an optional caption.
+
+**Edit mode**: auto-opens on first insert (detected via `useState(isEditing && url === '')` initial value). URL input + optional caption input; teal color theme. Pencil in the action strip re-opens edit mode.
+
+**View mode**: `<figure>` with full-width `<img>` and optional `<figcaption>`. Shows a dashed placeholder when no URL is set.
 
 ### Styling
 
