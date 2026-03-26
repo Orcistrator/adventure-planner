@@ -30,7 +30,8 @@ export const add = mutation({
       v.literal('encounter'),
       v.literal('treasure-table'),
       v.literal('divider'),
-      v.literal('image')
+      v.literal('image'),
+      v.literal('location')
     ),
     page: v.number(),
     afterOrder: v.optional(v.number()),
@@ -123,6 +124,8 @@ function getDefaults(
       return { ...base, type: 'divider' };
     case 'image':
       return { ...base, type: 'image', url: '' };
+    case 'location':
+      return { ...base, type: 'location', entityId: '' };
     default:
       return { ...base, type: 'text', markdown: '' };
   }

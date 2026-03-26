@@ -10,6 +10,7 @@ import EncounterBlock from './blocks/EncounterBlock';
 import TreasureTableBlock from './blocks/TreasureTableBlock';
 import DividerBlock from './blocks/DividerBlock';
 import ImageBlock from './blocks/ImageBlock';
+import LocationBlock from './blocks/LocationBlock';
 
 interface BlockRendererProps {
   block: Doc<'blocks'>;
@@ -94,6 +95,8 @@ export default function BlockRenderer({
         return <DividerBlock />;
       case 'image':
         return <ImageBlock id={block._id} url={block.url} caption={block.caption} isEditing={isEditing} editTrigger={editTrigger} />;
+      case 'location':
+        return <LocationBlock id={block._id} entityId={block.entityId} isEditing={isEditing} editTrigger={editTrigger} />;
       default:
         return null;
     }

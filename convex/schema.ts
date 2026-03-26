@@ -87,6 +87,13 @@ export default defineSchema({
         url: v.string(),
         caption: v.optional(v.string()),
       }),
+      v.object({
+        adventureId: v.id('adventures'),
+        page: v.optional(v.number()),
+        order: v.number(),
+        type: v.literal('location'),
+        entityId: v.string(),
+      }),
     )
   ).index('by_adventure_page_and_order', ['adventureId', 'page', 'order']),
 

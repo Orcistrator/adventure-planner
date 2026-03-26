@@ -94,7 +94,7 @@ export default function BlockList({ adventureId, blocks, isEditing }: BlockListP
           <div className="group/row relative">
             {isEditing && (
               <div className="absolute right-full top-2 pr-2 opacity-0 group-hover/row:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
-                {(block.type === 'encounter' || block.type === 'read-aloud' || block.type === 'treasure-table' || block.type === 'image') && (
+                {(block.type === 'encounter' || block.type === 'read-aloud' || block.type === 'treasure-table' || block.type === 'image' || block.type === 'location') && (
                   <button
                     onClick={() => handleEditBlock(block._id)}
                     title="Edit block"
