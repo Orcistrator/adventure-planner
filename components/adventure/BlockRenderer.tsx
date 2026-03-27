@@ -86,7 +86,7 @@ export default function BlockRenderer({
       case 'heading':
         return <LegacyHeadingBlock block={block} isEditing={isEditing} />;
       case 'read-aloud':
-        return <ReadAloudBlock id={block._id} text={block.text} prompts={block.prompts} isEditing={isEditing} editTrigger={editTrigger} />;
+        return <ReadAloudBlock id={block._id} text={block.text} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'encounter':
         return <EncounterBlock id={block._id} title={block.title} monsters={block.monsters} isEditing={isEditing} editTrigger={editTrigger} />;
       case 'treasure-table':

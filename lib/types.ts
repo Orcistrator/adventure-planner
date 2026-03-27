@@ -26,8 +26,3 @@ export interface TreasureTableItem {
   result: string;
   entityId?: string; // optional reference to an entity
 }
-
-export interface ConversationPrompt {
-  trigger: string;
-  response: string;
-}

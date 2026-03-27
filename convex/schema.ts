@@ -53,9 +53,6 @@ export default defineSchema({
         order: v.number(),
         type: v.literal('read-aloud'),
         text: v.string(),
-        prompts: v.optional(
-          v.array(v.object({ trigger: v.string(), response: v.string() }))
-        ),
       }),
       v.object({
         adventureId: v.id('adventures'),

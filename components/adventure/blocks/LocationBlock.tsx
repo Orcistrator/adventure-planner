@@ -185,9 +185,7 @@ export default function LocationBlock({
             {entity.name}
           </div>
           {meta && (
-            <div className="text-[12px] leading-[round(up,133.333%,1px)] tracking-[0.3px] text-[oklch(70.7%_0.022_261.3)] uppercase">
-              {meta}
-            </div>
+            <div className="text-xs text-stone-400 uppercase">{meta}</div>
           )}
         </div>
         {entity.description && (
