@@ -27,7 +27,7 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {headings.map((h) => {
         const anchorId = h.text
           .toLowerCase()
@@ -38,7 +38,7 @@ export default function TableOfContents({ headings }: TableOfContentsProps) {
             key={h.id}
             href={`#${anchorId}`}
             onClick={(e) => handleClick(e, anchorId)}
-            className={`block leading-snug py-0.5 transition-colors duration-100 truncate ${indentClass[h.level] ?? indentClass[3]}`}
+            className={`block truncate py-0.5 leading-snug transition-colors duration-100 ${indentClass[h.level] ?? indentClass[3]}`}
           >
             {h.text}
           </a>

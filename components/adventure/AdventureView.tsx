@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Pencil, Eye } from "lucide-react";
-import { motion, useScroll, useTransform } from "motion/react";
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from "motion/react";
 import AdventureHeader from "./AdventureHeader";
 import BlockList from "./BlockList";
 import TableOfContents from "./TableOfContents";
@@ -27,16 +32,18 @@ export default function AdventureView({ slug }: AdventureViewProps) {
   const { scrollY } = useScroll();
   // Title fades into the ToC sidebar as the cover header scrolls away
   const sidebarTitleOpacity = useTransform(scrollY, [220, 400], [0, 1]);
+  const [titleExpanded, setTitleExpanded] = useState(false);
+  useMotionValueEvent(scrollY, "change", (y) => setTitleExpanded(y > 220));
 
   if (adventure === undefined) {
     return (
       <div className="min-h-full bg-white">
-        <div className="h-[60vh] min-h-100 bg-gray-100 animate-pulse" />
-        <div className="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-4">
+        <div className="h-[60vh] min-h-100 animate-pulse bg-gray-100" />
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-12">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-4 bg-gray-100 rounded animate-pulse"
+              className="h-4 animate-pulse rounded bg-gray-100"
               style={{ width: `${80 - i * 10}%` }}
             />
           ))}
@@ -47,7 +54,7 @@ export default function AdventureView({ slug }: AdventureViewProps) {
 
   if (adventure === null) {
     return (
-      <div className="min-h-full bg-white flex items-center justify-center">
+      <div className="flex min-h-full items-center justify-center bg-white">
         <p className="text-gray-500">
           No adventure found for &ldquo;{slug}&rdquo;.
         </p>
@@ -58,12 +65,12 @@ export default function AdventureView({ slug }: AdventureViewProps) {
   if (blocks === undefined) {
     return (
       <div className="min-h-full bg-white">
-        <div className="h-[60vh] min-h-100 bg-gray-100 animate-pulse" />
-        <div className="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-4">
+        <div className="h-[60vh] min-h-100 animate-pulse bg-gray-100" />
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-12">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-4 bg-gray-100 rounded animate-pulse"
+              className="h-4 animate-pulse rounded bg-gray-100"
               style={{ width: `${80 - i * 10}%` }}
             />
           ))}
@@ -99,17 +106,31 @@ export default function AdventureView({ slug }: AdventureViewProps) {
       <AdventureHeader adventure={adventure} isEditing={isEditing} />
       {!isEditing && <div className="h-125" />}
 
-      <div className="max-w-6xl mx-auto px-6 py-12 flex gap-12">
+      <div className="mx-auto flex max-w-6xl gap-12 px-6 py-12">
         {/* Table of contents */}
-        <aside className="hidden xl:block w-48 shrink-0">
-          <div className="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1 flex flex-col gap-3">
+        <aside className="hidden w-48 shrink-0 xl:block">
+          <div className="sticky top-8 flex flex-col overflow-y-auto pr-1">
             {/* Adventure title — fades in as cover scrolls away */}
             <motion.div
               style={{ opacity: sidebarTitleOpacity }}
-              className="shrink-0"
+              animate={{
+                height: titleExpanded ? "auto" : 0,
+                marginBottom: titleExpanded ? 32 : 0,
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="shrink-0 overflow-hidden"
             >
-              <h2 className="font-heading text-base font-bold text-gray-900 leading-snug mb-3">
-                {adventure.title}
+              <h2 className="font-heading text-xl leading-snug font-bold text-gray-900">
+                <a
+                  href="#"
+                  className="transition-colors hover:text-indigo-600"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  {adventure.title}
+                </a>
               </h2>
             </motion.div>
 
@@ -118,7 +139,7 @@ export default function AdventureView({ slug }: AdventureViewProps) {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0">
+        <main className="min-w-0 flex-1">
           <BlockList
             adventureId={adventure._id}
             blocks={blocks ?? []}
@@ -128,13 +149,13 @@ export default function AdventureView({ slug }: AdventureViewProps) {
       </div>
 
       {/* Edit toggle */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsEditing((v) => !v)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm shadow-lg transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] ${
+          className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] ${
             isEditing
               ? "bg-gray-900 text-white hover:bg-gray-800"
-              : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
           }`}
         >
           {isEditing ? (

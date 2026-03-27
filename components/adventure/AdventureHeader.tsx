@@ -1,21 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 import {
   ImageIcon,
-  Search,
+  Cone,
   Skull,
   Gem,
-  Shield,
-  Compass,
+  ShieldUser,
+  MapPinned,
   Swords,
-  Heart,
+  LifeBuoy,
   Crown,
-  FileSearch,
-  Flame,
+  PawPrint,
+  FlameKindling,
+  Check,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -25,59 +27,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "motion/react";
 
 // ─── Presets ──────────────────────────────────────────────────────────────────
 
 const ENVIRONMENTS = [
-  { name: "Forest",      tw: "text-green-400   border-green-500" },
-  { name: "Desert",      tw: "text-amber-400   border-amber-500" },
-  { name: "Mountain",    tw: "text-stone-300   border-stone-400" },
-  { name: "Urban",       tw: "text-blue-400    border-blue-500" },
+  { name: "Forest", tw: "text-green-400   border-green-500" },
+  { name: "Desert", tw: "text-amber-400   border-amber-500" },
+  { name: "Mountain", tw: "text-stone-300   border-stone-400" },
+  { name: "Urban", tw: "text-blue-400    border-blue-500" },
   { name: "Underground", tw: "text-purple-400  border-purple-500" },
-  { name: "Coastal",     tw: "text-cyan-400    border-cyan-500" },
-  { name: "Arctic",      tw: "text-sky-300     border-sky-400" },
-  { name: "Swamp",       tw: "text-emerald-400 border-emerald-500" },
-  { name: "Ruins",       tw: "text-orange-400  border-orange-500" },
-  { name: "Dungeon",     tw: "text-red-400     border-red-500" },
+  { name: "Coastal", tw: "text-cyan-400    border-cyan-500" },
+  { name: "Arctic", tw: "text-sky-300     border-sky-400" },
+  { name: "Swamp", tw: "text-emerald-400 border-emerald-500" },
+  { name: "Ruins", tw: "text-orange-400  border-orange-500" },
+  { name: "Dungeon", tw: "text-red-400     border-red-500" },
 ] as const;
 
 const ADVENTURE_TYPES: { name: string; icon: LucideIcon }[] = [
-  { name: "Mystery",       icon: Search },
-  { name: "Horror",        icon: Skull },
-  { name: "Heist",         icon: Gem },
-  { name: "Escort",        icon: Shield },
-  { name: "Exploration",   icon: Compass },
-  { name: "Combat",        icon: Swords },
-  { name: "Rescue",        icon: Heart },
-  { name: "Political",     icon: Crown },
-  { name: "Investigation", icon: FileSearch },
-  { name: "Survival",      icon: Flame },
+  { name: "Mystery", icon: Cone },
+  { name: "Horror", icon: Skull },
+  { name: "Heist", icon: Gem },
+  { name: "Escort", icon: ShieldUser },
+  { name: "Exploration", icon: MapPinned },
+  { name: "Combat", icon: Swords },
+  { name: "Rescue", icon: LifeBuoy },
+  { name: "Political", icon: Crown },
+  { name: "Investigation", icon: PawPrint },
+  { name: "Survival", icon: FlameKindling },
 ];
 
 function getEnvStyle(name: string) {
   return (
-    ENVIRONMENTS.find((e) => e.name === name)?.tw ?? "text-amber-400 border-amber-500"
+    ENVIRONMENTS.find((e) => e.name === name)?.tw ??
+    "text-amber-400 border-amber-500"
   );
-}
-
-function getTypeIcon(name: string): LucideIcon {
-  return ADVENTURE_TYPES.find((t) => t.name === name)?.icon ?? Search;
-}
-
-// ─── Level helpers ─────────────────────────────────────────────────────────────
-
-function parseLevel(level?: string): [number, number] {
-  if (!level) return [1, 1];
-  const parts = level.split("-").map(Number).filter((n) => !isNaN(n) && n > 0);
-  if (parts.length === 0) return [1, 1];
-  if (parts.length === 1) return [parts[0], parts[0]];
-  return [parts[0], parts[1]];
-}
-
-function formatLevel(min: number, max: number): string {
-  return min === max ? String(min) : `${min}-${max}`;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -87,34 +77,28 @@ interface AdventureHeaderProps {
   isEditing: boolean;
 }
 
-export default function AdventureHeader({ adventure, isEditing }: AdventureHeaderProps) {
+export default function AdventureHeader({
+  adventure,
+  isEditing,
+}: AdventureHeaderProps) {
   const updateAdventure = useMutation(api.adventures.update);
 
   const [title, setTitle] = useState(adventure.title);
   const [type, setType] = useState(adventure.type ?? "");
   const [tags, setTags] = useState<string[]>(adventure.tags);
   const [coverImage, setCoverImage] = useState(adventure.coverImage ?? "");
-  const [levelMin, setLevelMin] = useState(() => parseLevel(adventure.level)[0]);
-  const [levelMax, setLevelMax] = useState(() => parseLevel(adventure.level)[1]);
-
-  useEffect(() => {
-    setTitle(adventure.title);
-    setType(adventure.type ?? "");
-    setTags(adventure.tags);
-    setCoverImage(adventure.coverImage ?? "");
-    const [min, max] = parseLevel(adventure.level);
-    setLevelMin(min);
-    setLevelMax(max);
-  }, [adventure]);
+  const [level, setLevel] = useState(adventure.level ?? "");
 
   const save = (patch: Record<string, unknown>) => {
-    updateAdventure({ id: adventure._id, ...patch } as Parameters<typeof updateAdventure>[0]);
+    updateAdventure({ id: adventure._id, ...patch } as Parameters<
+      typeof updateAdventure
+    >[0]);
   };
 
-  const saveLevel = (min: number, max: number) => save({ level: formatLevel(min, max) });
-
   const toggleEnvironment = (name: string) => {
-    const next = tags.includes(name) ? tags.filter((t) => t !== name) : [...tags, name];
+    const next = tags.includes(name)
+      ? tags.filter((t) => t !== name)
+      : [...tags, name];
     setTags(next);
     save({ tags: next });
   };
@@ -130,85 +114,77 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
   const metaOpacity = useTransform(scrollY, [0, 200], [1, 0]);
   const titleOpacity = useTransform(scrollY, [80, 280], [1, 0]);
 
-  const TypeIcon = getTypeIcon(type);
+  const typeEntry = ADVENTURE_TYPES.find((t) => t.name === type);
 
   // ── Edit mode ────────────────────────────────────────────────────────────────
   if (isEditing) {
     return (
-      <header className="relative h-125 flex items-end pb-10 overflow-hidden">
-        <div className="absolute inset-0 z-0">
+      <header className="relative flex h-125 items-end overflow-hidden pb-12">
+        <div className="absolute inset-0">
           {coverImage ? (
-            <Image src={coverImage} alt="" fill unoptimized priority className="object-cover" />
+            <Image
+              src={coverImage}
+              alt=""
+              fill
+              unoptimized
+              priority
+              className="object-cover"
+            />
           ) : (
-            <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
+            <div className="h-full w-full bg-linear-to-br from-stone-950/10 to-stone-950" />
           )}
         </div>
-        <div className="absolute inset-0 z-0 bg-linear-to-b from-black/10 via-black/30 to-black/70" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/30 to-black/70" />
 
-        {/* Cover image URL */}
-        <div className="absolute top-4 right-4 z-20">
-          <div className="flex items-center gap-2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-            <ImageIcon size={14} className="text-white/70" />
-            <input
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              onBlur={() => save({ coverImage: coverImage || undefined })}
-              placeholder="Cover image URL"
-              className="bg-transparent text-white text-sm outline-none placeholder:text-white/40 w-64"
-            />
-          </div>
-        </div>
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 w-full flex flex-col gap-4">
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-8 px-6 xl:pl-34">
           {/* Level + Environments */}
-          <div className="flex items-center gap-4 flex-wrap">
-            {/* Level range */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-white/50 text-xs uppercase tracking-wider font-semibold">Lvl</span>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={levelMin}
-                onChange={(e) => {
-                  const v = Math.max(1, Math.min(20, Number(e.target.value)));
-                  setLevelMin(v);
-                  if (v > levelMax) setLevelMax(v);
-                }}
-                onBlur={() => saveLevel(levelMin, levelMax)}
-                className="w-8 bg-white/10 text-white text-xs text-center rounded px-1 py-0.5 outline-none focus:bg-white/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <span className="text-white/40 text-xs">–</span>
-              <input
-                type="number"
-                min={levelMin}
-                max={20}
-                value={levelMax}
-                onChange={(e) => {
-                  const v = Math.max(levelMin, Math.min(20, Number(e.target.value)));
-                  setLevelMax(v);
-                }}
-                onBlur={() => saveLevel(levelMin, levelMax)}
-                className="w-8 bg-white/10 text-white text-xs text-center rounded px-1 py-0.5 outline-none focus:bg-white/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={level}
+              onValueChange={(v) => {
+                if (v) {
+                  setLevel(v);
+                  save({ level: v });
+                }
+              }}
+            >
+              <SelectTrigger className="h-10! w-20 rounded-md border-none bg-black/50 py-0 text-sm text-white focus:ring-0 focus:ring-offset-0">
+                <SelectValue placeholder="Level…" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 20 }, (_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    Level {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            {/* Environments */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {ENVIRONMENTS.map(({ name, tw }) => (
-                <button
-                  key={name}
-                  onClick={() => toggleEnvironment(name)}
-                  className={`px-2 py-0.5 rounded-sm text-xs font-bold tracking-widest uppercase border transition-colors duration-100 ${
-                    tags.includes(name)
-                      ? tw
-                      : "border-white/20 text-white/30 hover:text-white/60 hover:border-white/40"
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
+            <Popover>
+              <PopoverTrigger className="flex h-10 w-64 items-center gap-1.5 rounded-md border-none bg-black/50 px-3 text-sm text-white transition-[transform,background-color] duration-150 ease-out active:scale-[0.97]">
+                <span className="flex-1 truncate text-left">
+                  {tags.length > 0 ? tags.join(", ") : "Environments"}
+                </span>
+                <ChevronDown size={14} className="shrink-0 text-white/50" />
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-44 rounded-xl border-none bg-stone-950 p-1 shadow-lg"
+              >
+                {ENVIRONMENTS.map(({ name }) => (
+                  <button
+                    key={name}
+                    onClick={() => toggleEnvironment(name)}
+                    className="flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-stone-300 transition-colors duration-100 hover:bg-stone-900 active:bg-stone-800"
+                  >
+                    <span className="flex-1 text-left">{name}</span>
+                    {tags.includes(name) && (
+                      <Check size={16} className="shrink-0 text-stone-300" />
+                    )}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Title */}
@@ -216,14 +192,14 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => save({ title })}
-            className="font-heading text-5xl md:text-7xl text-white font-bold leading-tight drop-shadow-lg bg-transparent outline-none border-b-2 border-white/30 focus:border-white w-full pb-1 placeholder:text-white/40"
+            className="font-heading w-full border-b-2 border-white/20 bg-transparent pb-1 text-5xl leading-tight font-bold text-white drop-shadow-lg transition-[border-color] duration-150 ease-out outline-none placeholder:text-white/40 focus:border-white md:text-6xl"
             placeholder="Adventure title"
           />
 
           {/* Type */}
-          <Select value={type || undefined} onValueChange={(v) => selectType(v ?? "")}>
-            <SelectTrigger className="w-48 bg-white/10 border-white/20 text-white text-sm focus:ring-0 focus:ring-offset-0">
-              <SelectValue placeholder="Adventure type…" />
+          <Select value={type} onValueChange={(v) => selectType(v ?? "")}>
+            <SelectTrigger className="h-10! w-40 rounded-md border-none bg-black/50 py-0 text-sm text-white focus:ring-0 focus:ring-offset-0">
+              <SelectValue placeholder="Type…" />
             </SelectTrigger>
             <SelectContent>
               {ADVENTURE_TYPES.map(({ name, icon: Icon }) => (
@@ -237,6 +213,20 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
             </SelectContent>
           </Select>
         </div>
+
+        {/* Cover image URL */}
+        <div className="absolute top-4 right-4">
+          <div className="flex h-10 items-center gap-2 rounded-md bg-black/50 px-3">
+            <ImageIcon size={14} className="text-white/70" />
+            <input
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              onBlur={() => save({ coverImage: coverImage || undefined })}
+              placeholder="Cover image URL"
+              className="w-64 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+            />
+          </div>
+        </div>
       </header>
     );
   }
@@ -244,55 +234,59 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
   // ── Read mode ────────────────────────────────────────────────────────────────
   return (
     <motion.header
-      className="fixed top-0 left-0 right-0 z-40 overflow-hidden"
+      className="fixed top-0 right-0 left-0 z-40 overflow-hidden"
       style={{ height: headerHeight }}
     >
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0">
         {coverImage ? (
-          <Image src={coverImage} alt="" fill unoptimized priority className="object-cover" />
+          <Image
+            src={coverImage}
+            alt=""
+            fill
+            unoptimized
+            priority
+            className="object-cover"
+          />
         ) : (
-          <div className="w-full h-full bg-linear-to-br from-gray-950/10 to-gray-950" />
+          <div className="h-full w-full bg-linear-to-br from-stone-950/10 to-stone-950" />
         )}
       </div>
-      <div className="absolute inset-0 z-0 bg-linear-to-b from-black/10 via-black/30 to-black/70" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/30 to-black/70" />
 
-      <div className="absolute inset-x-0 bottom-0">
-        <div className="max-w-6xl mx-auto px-6 relative" style={{ height: 500 }}>
-          {/* Meta row */}
-          <motion.div
-            style={{ opacity: metaOpacity, bottom: 192 }}
-            className="absolute left-6 xl:left-66 right-6 flex items-center gap-3 flex-wrap"
-          >
-            {adventure.level && (
-              <span className="text-white font-semibold tracking-wider text-sm">
-                LEVEL {adventure.level.toUpperCase()}
-              </span>
-            )}
-            {adventure.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`px-2 py-0.5 border text-xs font-bold tracking-widest uppercase rounded-sm ${getEnvStyle(tag)}`}
-              >
-                {tag}
-              </span>
-            ))}
-          </motion.div>
+      <div className="absolute inset-0 mx-auto flex max-w-6xl flex-col justify-end gap-8 px-6 pb-12 xl:pl-66">
+        <motion.div
+          style={{ opacity: metaOpacity }}
+          className="flex flex-wrap items-center gap-3"
+        >
+          {adventure.level && (
+            <span className="text-sm font-semibold tracking-wider text-white">
+              LEVEL {adventure.level.toUpperCase()}
+            </span>
+          )}
+          {adventure.tags.map((tag) => (
+            <span
+              key={tag}
+              className={`rounded-sm border px-2 py-0.5 text-xs font-bold tracking-widest uppercase ${getEnvStyle(tag)}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </motion.div>
 
-          {/* Title */}
+        <div className="flex flex-col gap-6">
           <motion.h1
-            style={{ opacity: titleOpacity, bottom: 88 }}
-            className="absolute left-6 xl:left-66 right-6 font-heading text-5xl md:text-6xl text-white font-bold leading-tight drop-shadow-lg"
+            style={{ opacity: titleOpacity }}
+            className="font-heading text-5xl leading-tight font-bold text-white drop-shadow-lg md:text-6xl"
           >
             {adventure.title}
           </motion.h1>
 
-          {/* Type row */}
-          {adventure.type && (
+          {adventure.type && typeEntry && (
             <motion.div
-              style={{ opacity: metaOpacity, bottom: 48 }}
-              className="absolute left-6 xl:left-66 right-6 flex items-center gap-2 text-gray-300 text-lg"
+              style={{ opacity: metaOpacity }}
+              className="flex items-center gap-2 text-2xl font-medium text-stone-300"
             >
-              <TypeIcon size={20} />
+              <typeEntry.icon size={20} />
               <span>{adventure.type}</span>
             </motion.div>
           )}
