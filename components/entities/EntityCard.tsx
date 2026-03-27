@@ -1,12 +1,12 @@
-import { Shield, Heart } from 'lucide-react';
-import Image from 'next/image';
-import type { Entity } from '@/lib/types';
+import { Shield, Heart } from "lucide-react";
+import Image from "next/image";
+import type { Entity } from "@/lib/types";
 
 const typeColors = {
-  monster: 'bg-red-100 text-red-800 border-red-200',
-  character: 'bg-blue-100 text-blue-800 border-blue-200',
-  item: 'bg-amber-100 text-amber-800 border-amber-200',
-  location: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  monster: "bg-red-100 text-red-800 border-red-200",
+  character: "bg-blue-100 text-blue-800 border-blue-200",
+  item: "bg-amber-100 text-amber-800 border-amber-200",
+  location: "bg-emerald-100 text-emerald-800 border-emerald-200",
 } as const;
 
 interface EntityCardProps {
@@ -15,7 +15,7 @@ interface EntityCardProps {
 
 export default function EntityCard({ entity }: EntityCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       {entity.image && (
         <div className="relative h-48 w-full overflow-hidden bg-gray-100">
           <Image
@@ -27,33 +27,37 @@ export default function EntityCard({ entity }: EntityCardProps) {
           />
         </div>
       )}
-      <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-heading font-bold text-xl text-gray-900">
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-2 flex items-start justify-between">
+          <h3 className="font-heading text-xl font-bold text-gray-900">
             {entity.name}
           </h3>
           <span
-            className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${typeColors[entity.type]}`}
+            className={`rounded-full border px-2 py-0.5 text-[10px] tracking-wider uppercase ${typeColors[entity.type]}`}
           >
             {entity.type}
           </span>
         </div>
-        <p className="text-sm text-gray-600 mb-4 flex-1">{entity.description}</p>
+        <p className="mb-4 flex-1 text-sm text-gray-600">
+          {entity.description}
+        </p>
 
         {entity.stats && (
-          <div className="flex gap-4 text-sm border-t border-gray-100 pt-4 mt-auto">
+          <div className="mt-auto flex gap-4 border-t border-gray-100 pt-4 text-sm">
             {entity.stats.ac && (
-              <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                <Shield size={16} className="text-gray-400" /> AC {entity.stats.ac}
+              <div className="flex items-center gap-1.5 font-medium text-gray-700">
+                <Shield size={16} className="text-gray-400" /> AC{" "}
+                {entity.stats.ac}
               </div>
             )}
             {entity.stats.hp && (
-              <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                <Heart size={16} className="text-red-400" /> HP {entity.stats.hp}
+              <div className="flex items-center gap-1.5 font-medium text-gray-700">
+                <Heart size={16} className="text-red-400" /> HP{" "}
+                {entity.stats.hp}
               </div>
             )}
             {entity.stats.speed && (
-              <div className="flex items-center gap-1.5 text-gray-700 font-medium ml-auto text-xs">
+              <div className="ml-auto flex items-center gap-1.5 text-xs font-medium text-gray-700">
                 {entity.stats.speed}
               </div>
             )}

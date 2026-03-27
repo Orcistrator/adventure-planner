@@ -7,7 +7,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { Drawer as VaulDrawer } from "vaul";
 import { DrawerPortal, DrawerClose, DrawerTitle } from "@/components/ui/drawer";
 import { useEntityDrawer } from "./EntityDrawerContext";
-import { TYPE_CONFIG } from "./EntitySummaryCard";
+import { EntityBadge } from "./EntitySummaryCard";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -337,23 +337,20 @@ function NpcContent({ entity }: { entity: Doc<"entities"> }) {
 function ItemContent({ entity }: { entity: Doc<"entities"> }) {
   return (
     <>
-      <div className="-mt-1 mb-3 flex flex-wrap gap-2">
-        {entity.rarity && (
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] tracking-wider text-amber-700 uppercase">
-            {entity.rarity}
-          </span>
-        )}
-        {entity.itemType && (
-          <span className="rounded-full border border-stone-200 bg-stone-100 px-2 py-0.5 text-[11px] tracking-wider text-stone-600 uppercase">
-            {entity.itemType}
-          </span>
-        )}
-        {entity.requiresAttunement && (
-          <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] tracking-wider text-violet-600 uppercase">
-            Requires Attunement
-          </span>
-        )}
-      </div>
+      {(entity.itemType || entity.requiresAttunement) && (
+        <div className="-mt-1 mb-3 flex flex-wrap gap-2">
+          {entity.itemType && (
+            <span className="rounded-full border border-stone-200 bg-stone-100 px-2 py-0.5 text-[11px] tracking-wider text-stone-600 uppercase">
+              {entity.itemType}
+            </span>
+          )}
+          {entity.requiresAttunement && (
+            <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] tracking-wider text-violet-600 uppercase">
+              Requires Attunement
+            </span>
+          )}
+        </div>
+      )}
 
       {(entity.cost || entity.weight || entity.itemProperties) && (
         <>
@@ -448,7 +445,6 @@ export function EntityDrawer({
     }
   }
 
-  const cfg = displayEntity ? TYPE_CONFIG[displayEntity.type] : null;
 
   return (
     <VaulDrawer.Root
@@ -472,18 +468,16 @@ export function EntityDrawer({
           </DrawerTitle>
           {/* Scrollable content — only scrolls when needed */}
           <div className="overflow-y-auto select-text">
-            {displayEntity && cfg && (
+            {displayEntity && (
               <div className="relative flex flex-col items-center pt-2 pb-10">
                 {/* Title row */}
                 <div className="flex w-full max-w-245 items-center gap-3 px-6 py-6">
                   <h2 className="font-heading line-clamp-1 shrink-0 text-[22px] leading-tight text-[oklch(21%_0.034_264.7)]">
                     {displayEntity.name}
                   </h2>
-                  <span
-                    className={`shrink-0 rounded-full [border-width:0.666667px] px-1.5 py-0.5 text-[10px] tracking-[0.5px] uppercase ${cfg.color}`}
-                  >
-                    {cfg.label}
-                  </span>
+                  <div className="w-32 shrink-0">
+                    <EntityBadge entity={displayEntity} />
+                  </div>
                   {onEditAction && (
                     <button
                       onClick={() => {
@@ -511,11 +505,7 @@ export function EntityDrawer({
                         className="object-cover object-center"
                       />
                     ) : (
-                      <div
-                        className={`flex h-full w-full items-center justify-center ${cfg.iconBg}`}
-                      >
-                        <cfg.Icon size={48} strokeWidth={1.5} />
-                      </div>
+                      <div className="h-full w-full bg-stone-100" />
                     )}
                   </div>
 
