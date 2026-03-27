@@ -18,7 +18,7 @@ export default defineSchema({
     environment: v.optional(v.string()),
     tags: v.array(v.string()),
     coverImage: v.optional(v.string()),
-    status: v.union(v.literal('draft'), v.literal('published')),
+    status: v.optional(v.union(v.literal('draft'), v.literal('published'))),
     createdAt: v.number(),
   })
     .index('by_slug', ['slug']),
@@ -53,6 +53,9 @@ export default defineSchema({
         order: v.number(),
         type: v.literal('read-aloud'),
         text: v.string(),
+        prompts: v.optional(
+          v.array(v.object({ trigger: v.string(), response: v.string() }))
+        ),
       }),
       v.object({
         adventureId: v.id('adventures'),

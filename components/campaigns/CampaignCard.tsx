@@ -118,11 +118,6 @@ export function CampaignCard({ campaign, onEdit }: CampaignCardProps) {
                   <span className="text-[14px] leading-[1.43] text-[oklch(66.6%_0.179_58.3)] font-medium shrink-0">
                     {adventure.title}
                   </span>
-                  {adventure.status === 'draft' && (
-                    <span className="text-[12px] leading-[1.33] ml-auto text-[oklch(70.7%_0.022_261.3)] shrink-0">
-                      Draft
-                    </span>
-                  )}
                 </Link>
               ))
             )}

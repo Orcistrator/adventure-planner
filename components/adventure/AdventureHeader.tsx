@@ -4,22 +4,12 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
+import { ImageIcon, Check, ChevronDown } from "lucide-react";
 import {
-  ImageIcon,
-  Cone,
-  Skull,
-  Gem,
-  ShieldUser,
-  MapPinned,
-  Swords,
-  LifeBuoy,
-  Crown,
-  PawPrint,
-  FlameKindling,
-  Check,
-  ChevronDown,
-  type LucideIcon,
-} from "lucide-react";
+  ENVIRONMENTS,
+  ADVENTURE_TYPES,
+  getEnvStyle,
+} from "@/lib/adventure-presets";
 import {
   Select,
   SelectContent,
@@ -34,41 +24,6 @@ import {
 } from "@/components/ui/popover";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "motion/react";
-
-// ─── Presets ──────────────────────────────────────────────────────────────────
-
-const ENVIRONMENTS = [
-  { name: "Forest", tw: "text-green-400   border-green-500" },
-  { name: "Desert", tw: "text-amber-400   border-amber-500" },
-  { name: "Mountain", tw: "text-stone-300   border-stone-400" },
-  { name: "Urban", tw: "text-blue-400    border-blue-500" },
-  { name: "Underground", tw: "text-purple-400  border-purple-500" },
-  { name: "Coastal", tw: "text-cyan-400    border-cyan-500" },
-  { name: "Arctic", tw: "text-sky-300     border-sky-400" },
-  { name: "Swamp", tw: "text-emerald-400 border-emerald-500" },
-  { name: "Ruins", tw: "text-orange-400  border-orange-500" },
-  { name: "Dungeon", tw: "text-red-400     border-red-500" },
-] as const;
-
-const ADVENTURE_TYPES: { name: string; icon: LucideIcon }[] = [
-  { name: "Mystery", icon: Cone },
-  { name: "Horror", icon: Skull },
-  { name: "Heist", icon: Gem },
-  { name: "Escort", icon: ShieldUser },
-  { name: "Exploration", icon: MapPinned },
-  { name: "Combat", icon: Swords },
-  { name: "Rescue", icon: LifeBuoy },
-  { name: "Political", icon: Crown },
-  { name: "Investigation", icon: PawPrint },
-  { name: "Survival", icon: FlameKindling },
-];
-
-function getEnvStyle(name: string) {
-  return (
-    ENVIRONMENTS.find((e) => e.name === name)?.tw ??
-    "text-amber-400 border-amber-500"
-  );
-}
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 

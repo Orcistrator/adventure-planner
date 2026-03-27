@@ -261,9 +261,6 @@ export function CampaignFormModal({ campaign, onClose }: Props) {
                         <span className="text-[14px] text-[oklch(66.6%_0.179_58.3)] font-medium flex-1">
                           {adventure.title}
                         </span>
-                        <span className="text-[12px] text-[oklch(70.7%_0.022_261.3)] shrink-0">
-                          {adventure.status === 'draft' ? 'Draft' : 'Published'}
-                        </span>
                         <button
                           type="button"
                           onClick={() => removeAdventure(adventure._id)}
@@ -334,9 +331,6 @@ export function CampaignFormModal({ campaign, onClose }: Props) {
                             >
                               <BookOpenIcon size={14} />
                               <span className="flex-1">{adventure.title}</span>
-                              <span className="text-[11px] text-[oklch(70.7%_0.022_261.3)]">
-                                {adventure.status === 'draft' ? 'Draft' : 'Published'}
-                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>

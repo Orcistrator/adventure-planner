@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
+import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
-import { Pencil, Eye } from "lucide-react";
+import { Pencil, Eye, Trash2 } from "lucide-react";
 import {
   motion,
   useMotionValueEvent,
@@ -16,9 +17,10 @@ import TableOfContents from "./TableOfContents";
 
 interface AdventureViewProps {
   slug: string;
+  initialEditing?: boolean;
 }
 
-export default function AdventureView({ slug }: AdventureViewProps) {
+export default function AdventureView({ slug, initialEditing = false }: AdventureViewProps) {
   const adventure = useQuery(
     api.adventures.getBySlug,
     slug ? { slug } : "skip",
@@ -27,7 +29,10 @@ export default function AdventureView({ slug }: AdventureViewProps) {
     api.blocks.listByAdventure,
     adventure ? { adventureId: adventure._id } : "skip",
   );
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditing);
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const router = useRouter();
+  const removeAdventure = useMutation(api.adventures.remove);
 
   const { scrollY } = useScroll();
   // Title fades into the ToC sidebar as the cover header scrolls away
@@ -148,10 +153,41 @@ export default function AdventureView({ slug }: AdventureViewProps) {
         </main>
       </div>
 
-      {/* Edit toggle */}
-      <div className="fixed right-6 bottom-6 z-50">
+      {/* Edit toggle + delete */}
+      <div className="fixed right-6 bottom-6 z-50 flex items-center gap-2">
+        {isEditing && (
+          deleteConfirming ? (
+            <>
+              <span className="text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full px-3 py-2 shadow-lg">
+                Delete adventure?
+              </span>
+              <button
+                onClick={() => setDeleteConfirming(false)}
+                className="text-sm text-gray-500 bg-white border border-gray-200 rounded-full px-3 py-2 shadow-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/adventures');
+                  removeAdventure({ id: adventure._id });
+                }}
+                className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg bg-red-600 text-white hover:bg-red-700 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97]"
+              >
+                <Trash2 size={16} /> Delete
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setDeleteConfirming(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-full shadow-lg border border-gray-200 bg-white text-gray-400 hover:text-red-500 hover:border-red-200 transition-[background-color,color,border-color,transform] duration-150 ease-out active:scale-[0.97]"
+            >
+              <Trash2 size={16} />
+            </button>
+          )
+        )}
         <button
-          onClick={() => setIsEditing((v) => !v)}
+          onClick={() => { setIsEditing((v) => !v); setDeleteConfirming(false); }}
           className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-lg transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] ${
             isEditing
               ? "bg-gray-900 text-white hover:bg-gray-800"

@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import SelectionToolbar from './SelectionToolbar';
 import EntityLink from '@/components/entities/EntityLink';
+import { BLOCK_TYPES } from '../block-types';
 
 // ─── Caret position helper ────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ interface TextBlockProps {
   onFocused?: () => void;
   onCreateAfter?: () => void;
   onDeleteSelf?: () => void;
+  onInsertBlock?: (type: string) => void;
 }
 
 // ─── Markdown view renderer ──────────────────────────────────────────────────
@@ -133,6 +135,7 @@ export default function TextBlock({
   onFocused,
   onCreateAfter,
   onDeleteSelf,
+  onInsertBlock,
 }: TextBlockProps) {
   const [draft, setDraft] = useState(markdown);
   const [toolbarRect, setToolbarRect] = useState<DOMRect | null>(null);
@@ -142,6 +145,12 @@ export default function TextBlock({
   const [mentionStart, setMentionStart] = useState(0);
   const [mentionIndex, setMentionIndex] = useState(0);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+
+  // / command state
+  const [slashQuery, setSlashQuery] = useState<string | null>(null);
+  const [slashStart, setSlashStart] = useState(0);
+  const [slashIndex, setSlashIndex] = useState(0);
+  const [slashPos, setSlashPos] = useState<{ top: number; left: number } | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,8 +170,14 @@ export default function TextBlock({
           .slice(0, 8)
       : [];
 
+  const slashResults =
+    slashQuery !== null
+      ? BLOCK_TYPES.filter((bt) => bt.label.toLowerCase().includes(slashQuery.toLowerCase()))
+      : [];
+
   useEffect(() => { setDraft(markdown); }, [markdown]);
   useEffect(() => { setMentionIndex(0); }, [mentionQuery]);
+  useEffect(() => { setSlashIndex(0); }, [slashQuery]);
 
   // Auto-resize
   useEffect(() => {
@@ -182,9 +197,9 @@ export default function TextBlock({
     }
   }, [autoFocus, onFocused]);
 
-  // Hide toolbar + mention dropdown on scroll
+  // Hide toolbar + dropdowns on scroll
   useEffect(() => {
-    const hide = () => { setToolbarRect(null); setMentionQuery(null); };
+    const hide = () => { setToolbarRect(null); setMentionQuery(null); setSlashQuery(null); };
     window.addEventListener('scroll', hide, { passive: true });
     return () => window.removeEventListener('scroll', hide);
   }, []);
@@ -228,6 +243,8 @@ export default function TextBlock({
       setToolbarRect(null);
       setMentionQuery(null);
       setDropdownPos(null);
+      setSlashQuery(null);
+      setSlashPos(null);
     }, 200);
   };
 
@@ -237,26 +254,48 @@ export default function TextBlock({
     if (historyRef.current.length === 0) pushHistory(draft);
   };
 
-  // ─── @ mention detection ───────────────────────────────────────────────────
+  // ─── Special syntax detection (@mention, /command) ────────────────────────
 
-  const detectMention = (val: string, cursor: number) => {
+  const detectSpecialSyntax = (val: string, cursor: number) => {
     const textBeforeCursor = val.slice(0, cursor);
+    const ta = textareaRef.current;
+
+    // Check for / command (only at start of line or after whitespace)
+    const lastSlash = textBeforeCursor.lastIndexOf('/');
+    if (lastSlash !== -1) {
+      const charBefore = lastSlash > 0 ? val[lastSlash - 1] : '\n';
+      const afterSlash = textBeforeCursor.slice(lastSlash + 1);
+      if (
+        (charBefore === '\n' || charBefore === ' ' || lastSlash === 0) &&
+        !afterSlash.includes(' ') &&
+        !afterSlash.includes('\n')
+      ) {
+        setSlashQuery(afterSlash);
+        setSlashStart(lastSlash);
+        if (ta) {
+          const { top, left, lineHeight } = getCaretPosition(ta, lastSlash);
+          const rect = ta.getBoundingClientRect();
+          setSlashPos({ top: rect.top + top + lineHeight, left: rect.left + left });
+        }
+        setMentionQuery(null);
+        setDropdownPos(null);
+        return;
+      }
+    }
+    setSlashQuery(null);
+    setSlashPos(null);
+
+    // Check for @ mention
     const lastAt = textBeforeCursor.lastIndexOf('@');
     if (lastAt !== -1) {
       const afterAt = textBeforeCursor.slice(lastAt + 1);
-      // Don't trigger on already-formatted mentions (@[...]) or across newlines
       if (!afterAt.includes('\n') && !afterAt.startsWith('[')) {
         setMentionQuery(afterAt);
         setMentionStart(lastAt);
-        // Compute caret position for dropdown
-        const ta = textareaRef.current;
         if (ta) {
           const { top, left, lineHeight } = getCaretPosition(ta, lastAt);
           const rect = ta.getBoundingClientRect();
-          setDropdownPos({
-            top: rect.top + top + lineHeight,
-            left: rect.left + left,
-          });
+          setDropdownPos({ top: rect.top + top + lineHeight, left: rect.left + left });
         }
         return;
       }
@@ -290,13 +329,35 @@ export default function TextBlock({
     });
   }, [draft, mentionStart, save, pushHistory]);
 
+  // ─── / command selection ──────────────────────────────────────────────────
+
+  const selectSlashCommand = useCallback((type: string) => {
+    const ta = textareaRef.current;
+    const cursor = ta?.selectionStart ?? draft.length;
+    const before = draft.slice(0, slashStart);
+    const after = draft.slice(cursor);
+    const newDraft = before + after;
+
+    setSlashQuery(null);
+    setSlashPos(null);
+
+    if (newDraft.trim() === '') {
+      onInsertBlock?.(type);
+      onDeleteSelf?.();
+    } else {
+      setDraft(newDraft);
+      save(newDraft);
+      onInsertBlock?.(type);
+    }
+  }, [draft, slashStart, save, onInsertBlock, onDeleteSelf]);
+
   // ─── Text change ───────────────────────────────────────────────────────────
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     const cursor = e.target.selectionStart ?? val.length;
     setDraft(val);
-    detectMention(val, cursor);
+    detectSpecialSyntax(val, cursor);
     // Debounced history snapshot for undo
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => pushHistory(val), 500);
@@ -385,6 +446,36 @@ export default function TextBlock({
   // ─── Keyboard ─────────────────────────────────────────────────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // / command dropdown navigation
+    if (slashQuery !== null && slashResults.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSlashIndex((i) => Math.min(i + 1, slashResults.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSlashIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        selectSlashCommand(slashResults[slashIndex].type);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSlashQuery(null);
+        setSlashPos(null);
+        return;
+      }
+    } else if (slashQuery !== null && e.key === 'Escape') {
+      e.preventDefault();
+      setSlashQuery(null);
+      setSlashPos(null);
+      return;
+    }
+
     // Mention dropdown navigation
     if (mentionQuery !== null) {
       if (e.key === 'ArrowDown' && mentionResults.length > 0) {
@@ -436,14 +527,17 @@ export default function TextBlock({
     }
   };
 
-  // Close mention if cursor moves before @
+  // Close dropdowns if cursor moves before trigger character
   const handleSelect = () => {
     checkSelection();
-    if (mentionQuery !== null) {
-      const ta = textareaRef.current;
-      if (ta && ta.selectionStart <= mentionStart) {
-        setMentionQuery(null);
-      }
+    const ta = textareaRef.current;
+    if (!ta) return;
+    if (mentionQuery !== null && ta.selectionStart <= mentionStart) {
+      setMentionQuery(null);
+    }
+    if (slashQuery !== null && ta.selectionStart <= slashStart) {
+      setSlashQuery(null);
+      setSlashPos(null);
     }
   };
 
@@ -466,9 +560,32 @@ export default function TextBlock({
         onMouseUp={handleSelect}
         onKeyUp={handleSelect}
         placeholder="Start writing…"
-        className="w-full resize-none bg-transparent text-gray-700 leading-relaxed text-base outline-none placeholder:text-gray-300 min-h-[1.75rem] block"
+        className="w-full resize-none bg-transparent text-gray-700 leading-relaxed text-base outline-none placeholder:text-transparent focus:placeholder:text-gray-300 min-h-[1.75rem] block"
         rows={1}
       />
+
+      {/* / command dropdown */}
+      {slashQuery !== null && slashResults.length > 0 && slashPos && createPortal(
+        <div
+          style={{ position: 'fixed', top: slashPos.top + 4, left: slashPos.left, zIndex: 9999 }}
+          className="min-w-40 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg p-1"
+        >
+          {slashResults.map(({ type, label, icon: Icon }, i) => (
+            <button
+              key={type}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm text-gray-700 rounded-md transition-colors duration-100 ${
+                i === slashIndex ? 'bg-gray-100' : 'hover:bg-gray-100'
+              }`}
+              onMouseDown={(e) => { e.preventDefault(); selectSlashCommand(type); }}
+              onMouseEnter={() => setSlashIndex(i)}
+            >
+              <Icon size={14} className="text-gray-400 shrink-0" />
+              {label}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       {/* @ mention dropdown — portal so it renders outside any ancestor */}
       {mentionQuery !== null && mentionResults.length > 0 && dropdownPos && createPortal(

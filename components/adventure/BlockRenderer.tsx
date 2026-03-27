@@ -19,6 +19,7 @@ interface BlockRendererProps {
   onFocused?: () => void;
   onCreateAfter?: () => void;
   onDeleteSelf?: () => void;
+  onInsertBlock?: (type: string) => void;
   editTrigger?: number;
 }
 
@@ -67,6 +68,7 @@ export default function BlockRenderer({
   onFocused,
   onCreateAfter,
   onDeleteSelf,
+  onInsertBlock,
   editTrigger,
 }: BlockRendererProps) {
   const renderContent = () => {
@@ -81,6 +83,7 @@ export default function BlockRenderer({
             onFocused={onFocused}
             onCreateAfter={onCreateAfter}
             onDeleteSelf={onDeleteSelf}
+            onInsertBlock={onInsertBlock}
           />
         );
       case 'heading':

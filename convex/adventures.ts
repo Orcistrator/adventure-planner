@@ -30,9 +30,27 @@ export const create = mutation({
   handler: async (ctx, args) => {
     return ctx.db.insert('adventures', {
       ...args,
-      status: 'draft',
       createdAt: Date.now(),
     });
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id('adventures') },
+  handler: async (ctx, args) => {
+    const blocks = await ctx.db
+      .query('blocks')
+      .withIndex('by_adventure_page_and_order', (q) => q.eq('adventureId', args.id))
+      .take(500);
+    await Promise.all(blocks.map((b) => ctx.db.delete(b._id)));
+
+    const links = await ctx.db
+      .query('campaignAdventures')
+      .withIndex('by_adventure', (q) => q.eq('adventureId', args.id))
+      .take(100);
+    await Promise.all(links.map((l) => ctx.db.delete(l._id)));
+
+    await ctx.db.delete(args.id);
   },
 });
 
@@ -44,7 +62,6 @@ export const update = mutation({
     type: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     coverImage: v.optional(v.string()),
-    status: v.optional(v.union(v.literal('draft'), v.literal('published'))),
   },
   handler: async (ctx, args) => {
     const { id, ...fields } = args;
