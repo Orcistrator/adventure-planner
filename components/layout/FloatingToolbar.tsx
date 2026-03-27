@@ -47,11 +47,11 @@ export default function FloatingToolbar() {
   const [logoHovered, setLogoHovered] = useState(false);
 
   return (
-    <div className="fixed left-4 top-4 z-50 flex flex-col w-12 rounded-[120px] bg-stone-900">
+    <div className="fixed top-2 left-2 z-50 flex w-12 flex-col rounded-[120px] bg-stone-900">
       {/* Logo — links home */}
       <Link
         href="/"
-        className="flex h-12 items-center justify-center shrink-0"
+        className="flex h-12 shrink-0 items-center justify-center"
         onMouseEnter={() => setLogoHovered(true)}
         onMouseLeave={() => setLogoHovered(false)}
         title="Home"
@@ -89,7 +89,7 @@ export default function FloatingToolbar() {
               key={href}
               href={href}
               title={label}
-              className={`flex items-center justify-center rounded-full size-8 transition-[background-color,transform] duration-150 ease-out active:scale-95 ${
+              className={`flex size-8 items-center justify-center rounded-full transition-[background-color,transform] duration-150 ease-out active:scale-95 ${
                 isActive ? "bg-stone-700/50" : "hover:bg-stone-700/35"
               }`}
             >

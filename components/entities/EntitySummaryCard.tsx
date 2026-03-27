@@ -51,6 +51,25 @@ function entitySubtitle(entity: Doc<'entities'>): string | null {
   }
 }
 
+function EntityBadge({ entity }: { entity: Doc<'entities'> }) {
+  if (entity.type === 'monster' && entity.stats?.cr) {
+    return (
+      <div className="rounded-full px-2 flex items-center gap-0.5 h-5 justify-center bg-taupe-950 shrink-0">
+        <span className="text-[8px] tracking-[0.5px] leading-none uppercase text-white/50 font-semibold">CR</span>
+        <span className="text-[10px] tracking-[0.5px] leading-none uppercase text-white">{entity.stats.cr}</span>
+      </div>
+    );
+  }
+  if (entity.type === 'item' && entity.rarity) {
+    return (
+      <div className="rounded-full px-2 flex items-center h-5 justify-center bg-[oklch(48.8%_0.243_264.4)] shrink-0">
+        <span className="text-[10px] tracking-[0.5px] leading-none uppercase text-white">{entity.rarity}</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 // ── Card (grid view) ──────────────────────────────────────────────────────────
 
 interface EntitySummaryCardProps {
@@ -62,17 +81,15 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
   const cfg = TYPE_CONFIG[entity.type];
   const { Icon } = cfg;
   const subtitle = entitySubtitle(entity);
-  const isMonster = entity.type === 'monster';
-  const showStats = isMonster && entity.stats && (entity.stats.ac || entity.stats.hp);
   const { open } = useEntityDrawer();
 
   return (
     <div
-      className="flex flex-col gap-3 p-3 rounded-[10px] bg-white [border-width:0.666667px] border-[oklch(92.8%_0.006_264.5)] hover:shadow-md transition-[box-shadow,transform] duration-150 active:scale-[0.98] cursor-pointer"
+      className="group flex flex-col gap-3 p-3 rounded-xl bg-white [border-width:0.666667px] border-[oklch(92.8%_0.006_264.5)] hover:[box-shadow:#00000033_0px_2px_3px] transition-shadow duration-150 cursor-pointer"
       onClick={() => open(entity)}
     >
       {/* Square image */}
-      <div className="relative w-full aspect-square rounded-lg overflow-hidden [outline:1px_solid_oklch(92.8%_0.006_264.5)]">
+      <div className="relative w-full aspect-square rounded-sm overflow-hidden">
         {entity.image ? (
           <Image src={entity.image} alt={entity.name} fill unoptimized className="object-cover" />
         ) : (
@@ -83,10 +100,10 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
         {onEdit && (
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="absolute right-2 top-2 rounded-lg bg-[oklch(0%_0_0/30%)] p-1.5 hover:bg-[oklch(0%_0_0/50%)] transition-[background-color,transform] duration-100 active:scale-90"
+            className="absolute left-1.5 top-1.5 rounded-md bg-[oklch(0%_0_0/30%)] p-1.5 opacity-0 group-hover:opacity-100 hover:bg-[oklch(0%_0_0/50%)] transition-[opacity,background-color] duration-150"
             aria-label="Edit"
           >
-            <Pencil size={14} color="white" strokeWidth={2} />
+            <Pencil size={18} color="white" strokeWidth={1.5} />
           </button>
         )}
       </div>
@@ -94,55 +111,17 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
       {/* Info */}
       <div className="flex flex-col gap-1 min-w-0">
         {/* Name + badge row */}
-        <div className="flex items-center flex-wrap gap-2">
-          <span className="font-heading text-[16px] leading-snug text-[oklch(21%_0.034_264.7)] shrink-0">
+        <div className="items-center flex flex-wrap gap-1">
+          <span className="font-heading text-[14px] leading-snug text-[oklch(21%_0.034_264.7)] shrink-0">
             {entity.name}
           </span>
-          {isMonster && entity.stats?.cr ? (
-            <span className={`text-[10px] tracking-[0.5px] uppercase px-1.5 py-0.5 rounded-full [border-width:0.666667px] shrink-0 ${cfg.color}`}>
-              CR {entity.stats.cr}
-            </span>
-          ) : (
-            <span className={`text-[10px] tracking-[0.5px] uppercase px-1.5 py-0.5 rounded-full [border-width:0.666667px] shrink-0 ${cfg.color}`}>
-              {entity.type === 'item' && entity.rarity ? entity.rarity : cfg.label}
-            </span>
-          )}
+          <EntityBadge entity={entity} />
         </div>
 
         {/* Subtitle */}
         {subtitle && (
           <p className="text-[12px] italic leading-snug text-[oklch(60%_0.015_261)] line-clamp-1">
             {subtitle}
-          </p>
-        )}
-
-        {/* Monster stats */}
-        {showStats && (
-          <div className="flex items-center gap-3 mt-0.5">
-            {entity.stats?.ac && (
-              <span className="flex items-center gap-1 text-[12px] font-medium text-[oklch(44.6%_0.030_256.8)]">
-                <Shield size={12} className="text-slate-400" strokeWidth={2} />
-                AC {entity.stats.ac}
-              </span>
-            )}
-            {entity.stats?.hp && (
-              <span className="flex items-center gap-1 text-[12px] font-medium text-[oklch(44.6%_0.030_256.8)]">
-                <Heart size={12} className="text-[#FF6467]" strokeWidth={2} />
-                {entity.stats.hp} HP
-              </span>
-            )}
-            {entity.stats?.hpFormula && (
-              <span className="text-[11px] text-[oklch(70.7%_0.022_261.3)]">
-                ({entity.stats.hpFormula})
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Description for non-monsters without subtitle */}
-        {!isMonster && !subtitle && entity.description && (
-          <p className="text-[12px] text-[oklch(60%_0.015_261)] line-clamp-2 mt-0.5">
-            {entity.description}
           </p>
         )}
       </div>
