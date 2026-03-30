@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Check, ChevronDown, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import * as React from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export interface FilterOption {
   value: string;
@@ -37,33 +37,23 @@ export function FilterChip({
 
   return (
     <Popover>
-      <div className={cn('flex items-center', className)}>
-        <PopoverTrigger
-          className={cn(
-            'inline-flex h-8 items-center gap-1 px-3 text-xs font-medium border transition-[background-color,color,border-color,transform] duration-150 ease-out active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
-            isActive
-              ? 'rounded-l-lg rounded-r-none border-r-0 bg-stone-900 text-white border-stone-900 hover:bg-stone-800'
-              : 'rounded-lg border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-          )}
-        >
-          {label}
-          {isActive && (
-            <span className="rounded-sm bg-white/20 px-1 text-[10px] font-bold tabular-nums">
-              {selected.length}
-            </span>
-          )}
-          <ChevronDown size={12} className="opacity-50" />
-        </PopoverTrigger>
-        {isActive && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="flex h-8 items-center justify-center rounded-r-lg border border-l-0 border-stone-900 bg-stone-900 px-1.5 text-white/50 transition-colors hover:text-white"
-          >
-            <X size={11} />
-          </button>
+      <PopoverTrigger
+        className={cn(
+          "focus-visible:ring-ring/50 inline-flex h-9 items-center gap-1 rounded-md px-3 text-sm font-medium transition-[background-color,color,transform] duration-150 ease-out outline-none focus-visible:ring-2",
+          isActive
+            ? "bg-stone-100 text-stone-950 hover:bg-stone-200"
+            : "bg-stone-100 text-stone-950 hover:bg-stone-200",
+          className,
         )}
-      </div>
+      >
+        {label}
+        {isActive && (
+          <span className="text-xs font-medium text-stone-400 tabular-nums">
+            {selected.length}
+          </span>
+        )}
+        <ChevronDown size={16} className="opacity-40" />
+      </PopoverTrigger>
       <PopoverContent align="start" sideOffset={4} className="w-44 p-1">
         <div className="max-h-64 overflow-y-auto">
           {options.map((opt) => (
@@ -71,14 +61,14 @@ export function FilterChip({
               key={opt.value}
               type="button"
               onClick={() => toggle(opt.value)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
+              className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
             >
               <div
                 className={cn(
-                  'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                   selected.includes(opt.value)
-                    ? 'bg-stone-900 border-stone-900'
-                    : 'border-input',
+                    ? "border-stone-950 bg-stone-950"
+                    : "border-stone-300",
                 )}
               >
                 {selected.includes(opt.value) && (
@@ -91,5 +81,25 @@ export function FilterChip({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+interface FilterClearAllProps {
+  onClear: () => void;
+  className?: string;
+}
+
+export function FilterClearAll({ onClear, className }: FilterClearAllProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className={cn(
+        "inline-flex h-9 items-center rounded-md px-1 text-sm font-medium text-stone-400 transition-colors hover:text-stone-950",
+        className,
+      )}
+    >
+      Clear
+    </button>
   );
 }
