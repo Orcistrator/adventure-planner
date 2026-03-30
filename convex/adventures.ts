@@ -4,14 +4,16 @@ import { v } from 'convex/values';
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return ctx.db.query('adventures').order('desc').take(200);
+    const adventures = await ctx.db.query('adventures').take(200);
+    return adventures.sort((a, b) => a.title.localeCompare(b.title));
   },
 });
 
 export const listWithDescriptions = query({
   args: {},
   handler: async (ctx) => {
-    const adventures = await ctx.db.query('adventures').order('desc').take(200);
+    const adventures = await ctx.db.query('adventures').take(200);
+    adventures.sort((a, b) => a.title.localeCompare(b.title));
     return Promise.all(
       adventures.map(async (a) => {
         const firstBlock = await ctx.db

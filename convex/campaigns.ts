@@ -4,7 +4,8 @@ import { v } from 'convex/values';
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return ctx.db.query('campaigns').order('desc').take(100);
+    const campaigns = await ctx.db.query('campaigns').take(100);
+    return campaigns.sort((a, b) => a.name.localeCompare(b.name));
   },
 });
 

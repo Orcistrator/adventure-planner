@@ -94,13 +94,13 @@ export const list = query({
     ),
   },
   handler: async (ctx, args) => {
-    if (args.type) {
-      return ctx.db
-        .query('entities')
-        .withIndex('by_type', (q) => q.eq('type', args.type!))
-        .take(500);
-    }
-    return ctx.db.query('entities').take(500);
+    const results = args.type
+      ? await ctx.db
+          .query('entities')
+          .withIndex('by_type', (q) => q.eq('type', args.type!))
+          .take(500)
+      : await ctx.db.query('entities').take(500);
+    return results.sort((a, b) => a.name.localeCompare(b.name));
   },
 });
 
