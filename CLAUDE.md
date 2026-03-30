@@ -31,7 +31,7 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 **Convex schema** has five tables: `campaigns`, `adventures`, `campaignAdventures` (join), `blocks`, `entities`.
 
 - Adventures are standalone — zero-to-many campaigns via `campaignAdventures` join table
-- `blocks` uses a **union type** with seven variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`, `image`
+- `blocks` uses a **union type** with eight variants: `text`, `heading` (legacy), `read-aloud`, `encounter`, `treasure-table`, `divider`, `image`, `location`
 - Block ordering uses **floating-point fractional ordering** — new blocks inserted between two existing blocks get order `(a + b) / 2`, avoiding full reorders
 - `blocks.page` supports future multi-page documents; currently always `1`
 - `lib/data.ts` contains hardcoded seed entities (no longer used by `EncounterTracker`, which now fetches live from `useQuery(api.entities.list)`)
@@ -50,16 +50,14 @@ Both `npm run dev` and `npx convex dev` must be running simultaneously during de
 
 ```
 AdventureView
-├── AdventureHeader        — animated collapsing cover (fixed, scroll-driven)
-├── [h-125 spacer]         — reserves space for the fixed header in normal flow
-├── aside (xl only)
-│   ├── [title fades in]   — appears as header collapses (useTransform [220,400])
-│   └── TableOfContents    — sticky, scrolls with page
-└── main
-    └── BlockList
-        ├── InsertGap      — appears before every block in edit mode
-        ├── BlockRenderer  — routes to correct block component
-        └── InsertGap      — after last block in edit mode
+├── AdventureHeader        — animated collapsing cover (scroll-driven, Framer Motion)
+└── [content area: max-w-6xl]
+    ├── aside (xl only)    — sticky; title + TableOfContents
+    └── main
+        └── BlockList
+            ├── SortableBlockRow × N  (dnd-kit sortable, drag handle in action strip)
+            │   └── BlockRenderer     — routes to correct block component
+            └── GhostTextInput        — edit mode only, after last block
 ```
 
 **Header scroll animation** (Framer Motion `useScroll` + `useTransform`):
@@ -84,23 +82,29 @@ The **SelectionToolbar** floats above the textarea when text is selected. It use
 
 **Legacy heading blocks**: `heading`-type blocks still exist in the DB. `BlockRenderer` wraps them in `LegacyHeadingBlock`, which renders them correctly in view mode and auto-fires the `convertHeadingToText` mutation (delete + re-insert as `text` block with `#` prefix) when edit mode is entered.
 
-**InsertGap** renders a hover zone between every pair of blocks in edit mode. On click it opens a menu of insertable block types (all except text, which is created via Enter key). The `add` mutation returns the new block's ID; `BlockList` uses this to set `pendingFocusId` for auto-focus.
+**Insert picker**: In edit mode, each block row's action strip has a `+` button. Clicking it opens a portal-rendered popover listing all insertable block types (sourced from `components/adventure/block-types.ts`). Text blocks are created via Enter key in the `GhostTextInput` at the bottom instead. The `add` mutation returns the new block's ID; `BlockList` uses this to set `pendingFocusId` for auto-focus.
 
-**Adding a new block type** requires changes in five places:
+**Drag-and-drop**: `BlockList` uses `@dnd-kit` (`DndContext`, `SortableContext`, `useSortable`) for block reordering. On drag end, the block's `order` is updated to `(prev.order + next.order) / 2`. A `DragOverlay` renders a floating ghost card while dragging.
+
+**Adding a new block type** requires changes in six places:
 1. `convex/schema.ts` — add a new `v.object({ type: v.literal('...'), ... })` variant to the blocks union
 2. `convex/blocks.ts` — add `v.literal('...')` to the `add` mutation args union, and a `case` in `getDefaults()`
-3. `components/adventure/InsertGap.tsx` — add entry to `BLOCK_TYPES` array
+3. `components/adventure/block-types.ts` — add entry to `BLOCK_TYPES` array (shown in insert picker)
 4. `components/adventure/BlockRenderer.tsx` — import the component and add a `case` to the switch
 5. `components/adventure/BlockList.tsx` — add the type to the pencil-button visibility check if it has edit mode
 6. Create `components/adventure/blocks/YourBlock.tsx` — follow the dual-mode pattern: `useState(false)` for `editOpen`, watch `editTrigger` with `useEffect`, local draft state synced from props, save via `api.blocks.update`
 
 **Block action strip**: In edit mode, hovering a block reveals a left-side action strip (`absolute right-full top-2`) anchored outside the block's left edge. It contains:
-- **Pencil** (stone/gray) — only shown for `encounter`, `read-aloud`, `treasure-table`, and `image` blocks; triggers edit mode via an `editTrigger` counter prop
+- **Drag handle** (`GripVertical`) — dnd-kit drag activation
+- **Insert** (`Plus`) — opens the insert block picker portal
+- **Pencil** (stone/gray) — only shown for `encounter`, `read-aloud`, `treasure-table`, `image`, and `location` blocks; triggers edit mode via an `editTrigger` counter prop
 - **Trash** (red on hover) — deletes the block; for text blocks also re-focuses the nearest previous text block
 
 `BlockRenderer` no longer owns any action chrome. All block-level actions live in `BlockList`'s hover strip.
 
 **`editTrigger` pattern**: `BlockList` holds `editTriggers: Record<string, number>`. Clicking the pencil increments the counter for that block's ID. `BlockRenderer` passes it down; each editable block watches it with `useEffect(() => { if (editTrigger) setEditOpen(true); }, [editTrigger])`. This avoids `useImperativeHandle`/refs while keeping edit state local to each block.
+
+**Drop cap**: The first plain-text paragraph (not heading/list) in view mode gets a `drop-cap` CSS class. `BlockList` computes `firstParagraphId` by scanning sorted blocks; `isFirstParagraph` is threaded through `BlockRenderer` → `TextBlock` → `MarkdownView`.
 
 **ToC extraction** (in `AdventureView`) handles both legacy heading blocks and `#`-prefixed text blocks:
 ```ts
@@ -163,6 +167,14 @@ Schema fields: `url: string`, `caption?: string`. Full-width image with an optio
 **Edit mode**: auto-opens on first insert (detected via `useState(isEditing && url === '')` initial value). URL input + optional caption input; teal color theme. Pencil in the action strip re-opens edit mode.
 
 **View mode**: `<figure>` with full-width `<img>` and optional `<figcaption>`. Shows a dashed placeholder when no URL is set.
+
+### Location Block
+
+Schema field: `entityId: string` (stores the entity's slug). Renders a clickable card that opens the `EntityDrawerContext` drawer.
+
+**Edit mode**: searchable picker filtered to `type: "location"` entities only, fetched via `useQuery(api.entities.list, { type: 'location' })`. Shows avatar, name, locationType, and region. Auto-opens on first insert when `entityId` is empty.
+
+**View mode**: full-width card with image, name, locationType/region meta, and description preview. Clicking opens the entity drawer.
 
 ### Styling
 
