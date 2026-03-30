@@ -140,8 +140,7 @@ export default function AdventuresPage() {
   const hasSelection = selected.size > 0;
 
   return (
-    <div className="h-screen overflow-hidden bg-stone-200 p-2">
-      <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
+    <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="font-heading leading-tightest text-4xl text-stone-300">
@@ -331,6 +330,5 @@ export default function AdventuresPage() {
           )}
         </div>
       </div>
-    </div>
   );
 }

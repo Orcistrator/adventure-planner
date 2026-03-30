@@ -12,12 +12,14 @@ export default function MainLayout({
   return (
     <CommandMenuProvider>
       <EntityDrawerProvider>
-        <div className="relative min-h-screen">
-          <FloatingToolbar />
-          {children}
-        </div>
-        <EntityDrawer />
+        <FloatingToolbar />
         <GlobalCommandMenu />
+        <div className="flex h-screen flex-col gap-2 bg-stone-200 p-2">
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {children}
+          </div>
+          <EntityDrawer />
+        </div>
       </EntityDrawerProvider>
     </CommandMenuProvider>
   );

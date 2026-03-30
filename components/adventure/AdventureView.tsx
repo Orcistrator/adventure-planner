@@ -27,23 +27,21 @@ export default function AdventureView({ slug, initialEditing = false }: Adventur
 
   if (adventure === undefined || adventure === null || blocks === undefined) {
     return (
-      <div className="h-screen overflow-hidden bg-stone-200 p-2">
-        <div className="h-full overflow-y-auto rounded-lg bg-white">
-          {adventure === null ? (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">No adventure found for &ldquo;{slug}&rdquo;.</p>
+      <div className="h-full overflow-y-auto rounded-lg bg-white">
+        {adventure === null ? (
+          <div className="flex h-full items-center justify-center">
+            <p className="text-gray-500">No adventure found for &ldquo;{slug}&rdquo;.</p>
+          </div>
+        ) : (
+          <>
+            <div className="h-[60vh] min-h-100 animate-pulse bg-gray-100" />
+            <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-12">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-4 animate-pulse rounded bg-gray-100" style={{ width: `${80 - i * 10}%` }} />
+              ))}
             </div>
-          ) : (
-            <>
-              <div className="h-[60vh] min-h-100 animate-pulse bg-gray-100" />
-              <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-12">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-4 animate-pulse rounded bg-gray-100" style={{ width: `${80 - i * 10}%` }} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+          </>
+        )}
       </div>
     );
   }
@@ -60,8 +58,7 @@ export default function AdventureView({ slug, initialEditing = false }: Adventur
   });
 
   return (
-    <div className="h-screen overflow-hidden bg-stone-200 p-2">
-      <div className="h-full overflow-y-auto rounded-lg bg-white pb-24">
+    <div className="h-full overflow-y-auto rounded-lg bg-white pb-24 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <AdventureHeader adventure={adventure} isEditing={isEditing} />
 
         <div className="mx-auto flex max-w-6xl gap-12 px-6 py-12">
@@ -121,6 +118,5 @@ export default function AdventureView({ slug, initialEditing = false }: Adventur
           </button>
         </div>
       </div>
-    </div>
   );
 }
