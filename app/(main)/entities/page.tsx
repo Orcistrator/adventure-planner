@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronDown,
-  Skull,
-  User,
-  Package,
-  MapPin,
-  LayoutGrid,
-} from "lucide-react";
+import { ChevronDown, Grid2x2Plus } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
@@ -37,15 +30,11 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 type EntityType = "monster" | "character" | "item" | "location";
 
-const ADD_OPTIONS: {
-  type: EntityType;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { type: "monster", label: "Monster", icon: Skull },
-  { type: "character", label: "NPC", icon: User },
-  { type: "item", label: "Item", icon: Package },
-  { type: "location", label: "Location", icon: MapPin },
+const ADD_OPTIONS: { type: EntityType; label: string }[] = [
+  { type: "monster", label: "Monster" },
+  { type: "character", label: "NPC" },
+  { type: "item", label: "Item" },
+  { type: "location", label: "Location" },
 ];
 
 export default function EntitiesPage() {
@@ -100,39 +89,38 @@ export default function EntitiesPage() {
 
   return (
     <>
-      <div className="h-screen overflow-hidden bg-stone-200 p-8">
-        <div className="flex h-full flex-col gap-6 rounded-4xl bg-white pt-6 pr-6 pb-10 pl-10">
+      <div className="h-screen overflow-hidden bg-stone-200 p-2">
+        <div className="flex h-full flex-col gap-6 rounded-lg bg-white p-32">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="font-heading text-[30px] leading-[1.2] text-[oklch(21%_0.034_264.7)]">
+            <h1 className="font-heading leading-tightest text-4xl text-stone-300">
               Entities
             </h1>
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-taupe-950 py-2 pr-2.5 pl-3 text-[14px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-stone-800 active:scale-[0.97]">
-                <LayoutGrid
+              <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 py-2 pr-2 pl-3 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800">
+                <Grid2x2Plus
                   size={16}
-                  className="text-[#A6A09B]"
+                  className="text-stone-400"
                   strokeWidth={1.5}
                 />
                 Add Entity
                 <ChevronDown
                   size={16}
-                  className="text-stone-100"
+                  className="text-stone-200"
                   strokeWidth={1.5}
                 />
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-36 rounded-xl bg-stone-900 p-1 shadow-xl ring-0"
+                className="w-36 rounded-md bg-stone-950 p-1 shadow-xl ring-0"
               >
-                {ADD_OPTIONS.map(({ type, label, icon: Icon }) => (
+                {ADD_OPTIONS.map(({ type, label }) => (
                   <DropdownMenuItem
                     key={type}
                     onClick={() => openCreate(type)}
-                    className="cursor-pointer rounded-lg px-2 py-1.5 text-[14px] text-stone-300 focus:bg-stone-800 focus:text-stone-100 [&_svg]:text-stone-500 focus:[&_svg]:text-stone-300"
+                    className="cursor-pointer rounded-sm p-2 text-sm text-stone-300 focus:bg-stone-800 focus:text-stone-100"
                   >
-                    <Icon size={14} strokeWidth={1.5} />
                     {label}
                   </DropdownMenuItem>
                 ))}
@@ -154,7 +142,7 @@ export default function EntitiesPage() {
                   <TabsTrigger key={tab.key} value={tab.key}>
                     {tab.label}
                     {isActive && count > 0 && (
-                      <span className="rounded-full bg-taupe-950 px-1.5 py-0.5 text-[11px] leading-none font-medium text-[oklch(97%_0.001_106.4)]">
+                      <span className="rounded-full text-xs font-medium text-stone-400">
                         {count}
                       </span>
                     )}
