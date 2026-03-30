@@ -18,6 +18,7 @@ import { MonsterFormModal } from "@/components/entities/MonsterFormModal";
 import { NpcFormModal } from "@/components/entities/NpcFormModal";
 import { ItemFormModal } from "@/components/entities/ItemFormModal";
 import { LocationFormModal } from "@/components/entities/LocationFormModal";
+import { CommandMenuButton } from "@/components/layout/CommandMenuButton";
 
 const TABS = [
   { key: "all", label: "All" },
@@ -97,6 +98,8 @@ export default function EntitiesPage() {
               Entities
             </h1>
 
+            <div className="flex items-center gap-2">
+              <CommandMenuButton />
             <DropdownMenu>
               <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 py-2 pr-2 pl-3 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800">
                 <Grid2x2Plus
@@ -126,6 +129,7 @@ export default function EntitiesPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
 
           {/* Filter tabs */}

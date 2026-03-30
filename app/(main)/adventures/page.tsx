@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { BookOpen, Search, Trash2, Check, Plus } from "lucide-react";
+import { BookOpen, Trash2, Check, Plus } from "lucide-react";
+import { CommandMenuButton } from "@/components/layout/CommandMenuButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FilterChip, type FilterOption } from "@/components/ui/filter-bar";
@@ -72,7 +73,6 @@ export default function AdventuresPage() {
   const removeAdventure = useMutation(api.adventures.remove);
   const createAdventure = useMutation(api.adventures.create);
 
-  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [envFilter, setEnvFilter] = useState<string[]>([]);
@@ -97,10 +97,6 @@ export default function AdventuresPage() {
     if (!adventures) return [];
     let result = [...adventures];
 
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter((a) => a.title.toLowerCase().includes(q));
-    }
     if (typeFilter.length > 0) {
       result = result.filter((a) => a.type && typeFilter.includes(a.type));
     }
@@ -124,7 +120,7 @@ export default function AdventuresPage() {
     }
 
     return result;
-  }, [adventures, search, sort, typeFilter, envFilter, levelFilter]);
+  }, [adventures, sort, typeFilter, envFilter, levelFilter]);
 
   const toggleSelect = (id: Id<"adventures">) => {
     setSelected((prev) => {
@@ -151,15 +147,18 @@ export default function AdventuresPage() {
           <h1 className="font-heading leading-tightest text-4xl text-stone-300">
             Adventures
           </h1>
-          <button
-            onClick={() => {
-              setNewTitle("");
-              setCreating(true);
-            }}
-            className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
-          >
-            New Adventure
-          </button>
+          <div className="flex items-center gap-2">
+            <CommandMenuButton />
+            <button
+              onClick={() => {
+                setNewTitle("");
+                setCreating(true);
+              }}
+              className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
+            >
+              New Adventure
+            </button>
+          </div>
         </div>
 
         <Dialog
@@ -195,91 +194,71 @@ export default function AdventuresPage() {
         </Dialog>
 
         {/* Toolbar */}
-        <div className="flex shrink-0 flex-col gap-3">
-          {/* Row 1: search + sort */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search
-                size={14}
-                className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search adventures…"
-                className="pl-8"
-              />
-            </div>
-            <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="az">A–Z</SelectItem>
-                <SelectItem value="za">Z–A</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Row 2: filters + bulk actions */}
-          <div className="flex items-center gap-2">
-            <FilterChip
-              label="Type"
-              options={TYPE_OPTIONS}
-              selected={typeFilter}
-              onChange={setTypeFilter}
-            />
-            <FilterChip
-              label="Environment"
-              options={ENV_OPTIONS}
-              selected={envFilter}
-              onChange={setEnvFilter}
-            />
-            <FilterChip
-              label="Level"
-              options={LEVEL_OPTIONS}
-              selected={levelFilter}
-              onChange={setLevelFilter}
-            />
-
-            {hasSelection && (
-              <div className="ml-auto flex items-center gap-2">
-                {confirming ? (
-                  <>
-                    <span className="text-sm font-medium text-red-600">
-                      Delete {selected.size} adventure
-                      {selected.size > 1 ? "s" : ""}?
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setConfirming(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleDelete}
-                    >
-                      <Trash2 size={13} /> Confirm
-                    </Button>
-                  </>
-                ) : (
+        <div className="flex shrink-0 items-center gap-2">
+          <FilterChip
+            label="Type"
+            options={TYPE_OPTIONS}
+            selected={typeFilter}
+            onChange={setTypeFilter}
+          />
+          <FilterChip
+            label="Environment"
+            options={ENV_OPTIONS}
+            selected={envFilter}
+            onChange={setEnvFilter}
+          />
+          <FilterChip
+            label="Level"
+            options={LEVEL_OPTIONS}
+            selected={levelFilter}
+            onChange={setLevelFilter}
+          />
+          <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="az">A–Z</SelectItem>
+              <SelectItem value="za">Z–A</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasSelection && (
+            <div className="ml-auto flex items-center gap-2">
+              {confirming ? (
+                <>
+                  <span className="text-sm font-medium text-red-600">
+                    Delete {selected.size} adventure
+                    {selected.size > 1 ? "s" : ""}?
+                  </span>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setConfirming(true)}
-                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => setConfirming(false)}
                   >
-                    <Trash2 size={13} /> Delete {selected.size}
+                    Cancel
                   </Button>
-                )}
-              </div>
-            )}
-          </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 size={13} /> Confirm
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirming(true)}
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Trash2 size={13} /> Delete {selected.size}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* List */}

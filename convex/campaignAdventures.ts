@@ -1,6 +1,13 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return ctx.db.query('campaignAdventures').take(1000);
+  },
+});
+
 export const listForCampaign = query({
   args: { campaignId: v.id('campaigns') },
   handler: async (ctx, args) => {
