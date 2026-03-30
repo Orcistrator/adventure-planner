@@ -55,7 +55,7 @@ export function FilterChip({
         <ChevronDown size={16} className="opacity-40" />
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={4} className="w-44 gap-0 p-1">
-        <div className="max-h-64 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="max-h-64 overflow-y-auto scrollbar-hide">
           {options.map((opt) => (
             <button
               key={opt.value}

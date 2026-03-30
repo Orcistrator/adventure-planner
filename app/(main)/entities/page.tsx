@@ -156,7 +156,7 @@ export default function EntitiesPage() {
           </Tabs>
 
           {/* Grid */}
-          <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
             {filtered === undefined ? (
               <div className="text-sm text-stone-400">Loading…</div>
             ) : filtered.length === 0 ? (

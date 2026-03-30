@@ -65,7 +65,8 @@ export function CampaignFormModal({ campaign, onClose }: Props) {
 
   const linkedAdventures = useMemo(() => {
     const existing = (existingLinks ?? []).filter((a) => !toRemove.includes(a._id));
-    const pending = (allAdventures ?? []).filter((a) => toAdd.includes(a._id));
+    const existingIds = new Set(existing.map((a) => a._id));
+    const pending = (allAdventures ?? []).filter((a) => toAdd.includes(a._id) && !existingIds.has(a._id));
     return [...existing, ...pending];
   }, [existingLinks, allAdventures, toRemove, toAdd]);
 

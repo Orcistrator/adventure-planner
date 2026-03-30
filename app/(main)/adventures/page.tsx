@@ -233,7 +233,7 @@ export default function AdventuresPage() {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
         {adventures === undefined ? (
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, i) => (

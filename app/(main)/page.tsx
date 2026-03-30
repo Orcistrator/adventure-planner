@@ -24,45 +24,45 @@ export default function CampaignsPage() {
   return (
     <>
       <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="font-heading leading-tightest text-4xl text-stone-300">
-              Campaigns
-            </h1>
-            <div className="flex items-center gap-2">
-              <CommandMenuButton />
-              <button
-                onClick={() => setIsCreating(true)}
-                className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
-              >
-                New Campaign
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto">
-            {campaigns === undefined ? (
-              <div className="text-sm text-stone-400">Loading…</div>
-            ) : campaigns.length === 0 ? (
-              <div className="text-sm text-stone-500 italic">
-                No campaigns yet. Create one to get started.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-2">
-                {campaigns.map((campaign) =>
-                  editingCampaign?._id === campaign._id ? null : (
-                    <CampaignCard
-                      key={campaign._id}
-                      campaign={campaign}
-                      onEdit={setEditingCampaign}
-                    />
-                  ),
-                )}
-              </div>
-            )}
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="font-heading leading-tightest text-4xl text-stone-300">
+            Campaigns
+          </h1>
+          <div className="flex items-center gap-2">
+            <CommandMenuButton />
+            <button
+              onClick={() => setIsCreating(true)}
+              className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
+            >
+              New Campaign
+            </button>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          {campaigns === undefined ? (
+            <div className="text-sm text-stone-400">Loading…</div>
+          ) : campaigns.length === 0 ? (
+            <div className="text-sm text-stone-500 italic">
+              No campaigns yet. Create one to get started.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {campaigns.map((campaign) =>
+                editingCampaign?._id === campaign._id ? null : (
+                  <CampaignCard
+                    key={campaign._id}
+                    campaign={campaign}
+                    onEdit={setEditingCampaign}
+                  />
+                ),
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       <AnimatePresence>
         {(isCreating || editingCampaign !== null) && (

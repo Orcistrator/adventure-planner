@@ -58,7 +58,7 @@ export default function AdventureView({ slug, initialEditing = false }: Adventur
   });
 
   return (
-    <div className="h-full overflow-y-auto rounded-lg bg-white pb-24 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="h-full overflow-y-auto rounded-lg bg-white pb-24 scrollbar-hide">
         <AdventureHeader adventure={adventure} isEditing={isEditing} />
 
         <div className="mx-auto flex max-w-6xl gap-12 px-6 py-12">

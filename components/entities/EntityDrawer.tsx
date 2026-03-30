@@ -250,7 +250,7 @@ export function EntityDrawer({ onEditAction }: { onEditAction?: (entity: Doc<"en
                 </button>
 
                 {/* Single scrollable container — all cols scroll together */}
-                <div className="flex max-h-[50vh] gap-8 overflow-y-auto px-40 py-20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex max-h-[50vh] gap-8 overflow-y-auto px-40 py-20 scrollbar-hide">
                   {/* Col 1: image + badge */}
                   <div className="flex w-44 shrink-0 flex-col gap-3">
                     <div className="relative aspect-square w-full overflow-clip rounded-xl bg-stone-100">
