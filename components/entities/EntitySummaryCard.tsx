@@ -159,7 +159,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
       onClick={() => open(entity)}
     >
       {/* Square image */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-sm">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl">
         {entity.image ? (
           <Image
             src={entity.image}
@@ -189,7 +189,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
       <div className="flex min-w-0 flex-col gap-2">
         {/* Name + badge row */}
         <div className="flex flex-wrap items-center gap-1">
-          <span className="font-heading text-dm shrink-0 leading-snug text-stone-950">
+          <span className="font-heading text-dm truncate leading-snug text-stone-950">
             {entity.name}
           </span>
         </div>
