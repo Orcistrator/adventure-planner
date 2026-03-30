@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { BookOpen, Trash2, Check, Plus } from "lucide-react";
+import { Check } from "lucide-react";
 import { CommandMenuButton } from "@/components/layout/CommandMenuButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   ADVENTURE_TYPES,
   ENVIRONMENTS,
   LEVEL_OPTIONS,
+  getEnvStyle,
 } from "@/lib/adventure-presets";
 
 function toSlug(title: string): string {
@@ -66,7 +67,7 @@ function levelMatches(
 
 export default function AdventuresPage() {
   const router = useRouter();
-  const adventures = useQuery(api.adventures.list);
+  const adventures = useQuery(api.adventures.listWithDescriptions);
   const removeAdventure = useMutation(api.adventures.remove);
   const createAdventure = useMutation(api.adventures.create);
 
@@ -75,7 +76,6 @@ export default function AdventuresPage() {
   const [envFilter, setEnvFilter] = useState<string[]>([]);
   const [levelFilter, setLevelFilter] = useState<string[]>([]);
   const [selected, setSelected] = useState<Set<Id<"adventures">>>(new Set());
-  const [confirming, setConfirming] = useState(false);
 
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -125,13 +125,11 @@ export default function AdventuresPage() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-    setConfirming(false);
   };
 
   const handleDelete = async () => {
     await Promise.all([...selected].map((id) => removeAdventure({ id })));
     setSelected(new Set());
-    setConfirming(false);
   };
 
   const hasSelection = selected.size > 0;
@@ -222,45 +220,26 @@ export default function AdventuresPage() {
         )}
         {hasSelection && (
           <div className="ml-auto flex items-center gap-2">
-            {confirming ? (
-              <>
-                <span className="text-sm font-medium text-red-600">
-                  Delete {selected.size} adventure
-                  {selected.size > 1 ? "s" : ""}?
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setConfirming(false)}
-                >
-                  Cancel
-                </Button>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
-                  <Trash2 size={13} /> Confirm
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setConfirming(true)}
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-              >
-                <Trash2 size={13} /> Delete {selected.size}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDelete}
+              className="h-9 border-none bg-red-50 text-sm text-red-600 shadow-none hover:bg-red-100 hover:text-red-600"
+            >
+              Delete {selected.size}
+            </Button>
           </div>
         )}
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {adventures === undefined ? (
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="h-14 animate-pulse rounded-xl bg-gray-100"
+                className="h-20 animate-pulse rounded-xl bg-gray-100"
               />
             ))}
           </div>
@@ -271,11 +250,15 @@ export default function AdventuresPage() {
               : "No adventures match."}
           </p>
         ) : (
-          <ul className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3">
             {filtered.map((adventure) => {
               const isSelected = selected.has(adventure._id);
               return (
-                <li key={adventure._id} className="flex items-center gap-2">
+                <div
+                  key={adventure._id}
+                  className={`group flex items-center gap-6 rounded-3xl border p-6 transition-shadow hover:shadow-md`}
+                >
+                  {/* Checkbox */}
                   <button
                     onClick={() => toggleSelect(adventure._id)}
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
@@ -288,34 +271,79 @@ export default function AdventuresPage() {
                       <Check size={11} strokeWidth={3} className="text-white" />
                     )}
                   </button>
+
+                  {/* Content */}
                   <Link
                     href={`/adventure/${adventure.slug}`}
-                    className={`flex flex-1 items-center gap-3 rounded-xl px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-gray-50 active:scale-[0.99] ${
-                      isSelected ? "bg-stone-50" : ""
-                    }`}
+                    className="flex min-w-0 flex-1"
                   >
-                    <BookOpen size={16} className="shrink-0 text-gray-400" />
-                    <span className="font-medium text-gray-900">
-                      {adventure.title}
-                    </span>
-                    {adventure.level && (
-                      <span className="ml-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">
-                        Lv {adventure.level}
-                      </span>
-                    )}
-                    {adventure.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded border border-gray-200 px-2 py-0.5 text-xs font-semibold tracking-wider text-gray-400 uppercase"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    {/* Thumbnail — slides in on hover */}
+                    <div className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-400 ease-in-out group-hover:grid-cols-[1fr]">
+                      <div className="overflow-hidden">
+                        <div
+                          className={`mr-4 h-20 w-20 rounded-xl bg-cover bg-center ${adventure.coverImage ? "" : "bg-gray-100"}`}
+                          style={
+                            adventure.coverImage
+                              ? {
+                                  backgroundImage: `url(${adventure.coverImage})`,
+                                }
+                              : undefined
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                      {/* Top row: title + meta */}
+                      <div className="flex items-center gap-2">
+                        {/* Title */}
+                        <span className="shrink-0 text-base font-medium text-gray-900">
+                          {adventure.title}
+                        </span>
+
+                        {/* Level */}
+                        {adventure.level && (
+                          <span className="ml-1 text-xs font-semibold tracking-[0.6px] text-stone-400 uppercase">
+                            Lv {adventure.level}
+                          </span>
+                        )}
+
+                        {/* Type + env tags — slides in from left on hover */}
+                        {(adventure.type || adventure.tags.length > 0) && (
+                          <div className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 ease-out group-hover:grid-cols-[1fr]">
+                            <div className="overflow-hidden">
+                              <div className="flex items-center gap-2 pl-2">
+                                {adventure.type && (
+                                  <span className="shrink-0 text-xs font-semibold tracking-[0.6px] text-stone-400 uppercase">
+                                    {adventure.type}
+                                  </span>
+                                )}
+                                {adventure.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className={`inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[10px] font-medium tracking-[0.5px] uppercase ${getEnvStyle(tag)}`}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      {adventure.description && (
+                        <p className="line-clamp-2 text-sm leading-snug text-gray-500">
+                          {adventure.description}
+                        </p>
+                      )}
+                    </div>
                   </Link>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
       </div>
     </div>

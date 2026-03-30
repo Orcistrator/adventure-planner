@@ -8,6 +8,32 @@ export const list = query({
   },
 });
 
+export const listWithDescriptions = query({
+  args: {},
+  handler: async (ctx) => {
+    const adventures = await ctx.db.query('adventures').order('desc').take(200);
+    return Promise.all(
+      adventures.map(async (a) => {
+        const firstBlock = await ctx.db
+          .query('blocks')
+          .withIndex('by_adventure_page_and_order', (q) => q.eq('adventureId', a._id))
+          .first();
+        let description: string | undefined;
+        if (firstBlock?.type === 'text') {
+          description = firstBlock.markdown
+            .replace(/^#{1,4}\s+/, '')
+            .replace(/\*\*/g, '')
+            .replace(/\*/g, '')
+            .replace(/@\[([^\]]+)\]\([^)]+\)/g, '$1')
+            .trim()
+            .slice(0, 280);
+        }
+        return { ...a, description };
+      })
+    );
+  },
+});
+
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {

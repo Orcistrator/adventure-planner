@@ -200,7 +200,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
             {subtitle}
           </p>
         )}
-        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-out group-hover:grid-rows-[1fr]">
+        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out group-hover:grid-rows-[1fr]">
           <div className="overflow-hidden">
             <EntityBadge entity={entity} />
           </div>

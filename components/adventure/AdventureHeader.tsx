@@ -151,7 +151,7 @@ export default function AdventureHeader({ adventure, isEditing }: AdventureHeade
             </span>
           )}
           {adventure.tags.map((tag) => (
-            <span key={tag} className={`rounded-sm border px-2 py-0.5 text-xs font-bold tracking-widest uppercase ${getEnvStyle(tag)}`}>
+            <span key={tag} className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-medium tracking-[0.5px] uppercase ${getEnvStyle(tag)}`}>
               {tag}
             </span>
           ))}

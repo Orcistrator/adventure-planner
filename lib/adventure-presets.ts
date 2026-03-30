@@ -13,24 +13,23 @@ import {
 } from 'lucide-react';
 
 export const ENVIRONMENTS = [
-  { name: 'Forest',      tw: 'text-green-400   border-green-500'   },
-  { name: 'Desert',      tw: 'text-amber-400   border-amber-500'   },
-  { name: 'Mountain',    tw: 'text-stone-300   border-stone-400'   },
-  { name: 'Urban',       tw: 'text-blue-400    border-blue-500'    },
-  { name: 'Underground', tw: 'text-purple-400  border-purple-500'  },
-  { name: 'Coastal',     tw: 'text-cyan-400    border-cyan-500'    },
-  { name: 'Arctic',      tw: 'text-sky-300     border-sky-400'     },
-  { name: 'Swamp',       tw: 'text-emerald-400 border-emerald-500' },
-  { name: 'Ruins',       tw: 'text-orange-400  border-orange-500'  },
-  { name: 'Dungeon',     tw: 'text-red-400     border-red-500'     },
+  { name: 'Forest',      bg: 'bg-green-600',   text: 'text-white'     },
+  { name: 'Desert',      bg: 'bg-amber-500',   text: 'text-white'     },
+  { name: 'Mountain',    bg: 'bg-stone-200',   text: 'text-stone-500' },
+  { name: 'Urban',       bg: 'bg-blue-600',    text: 'text-white'     },
+  { name: 'Underground', bg: 'bg-purple-700',  text: 'text-white'     },
+  { name: 'Coastal',     bg: 'bg-cyan-500',    text: 'text-white'     },
+  { name: 'Arctic',      bg: 'bg-sky-200',     text: 'text-sky-900'   },
+  { name: 'Swamp',       bg: 'bg-emerald-700', text: 'text-white'     },
+  { name: 'Ruins',       bg: 'bg-orange-500',  text: 'text-white'     },
+  { name: 'Dungeon',     bg: 'bg-red-700',     text: 'text-white'     },
 ] as const;
 
 export type EnvironmentName = (typeof ENVIRONMENTS)[number]['name'];
 
 export function getEnvStyle(name: string): string {
-  return (
-    ENVIRONMENTS.find((e) => e.name === name)?.tw ?? 'text-amber-400 border-amber-500'
-  );
+  const env = ENVIRONMENTS.find((e) => e.name === name);
+  return env ? `${env.bg} ${env.text}` : 'bg-amber-500 text-white';
 }
 
 export const ADVENTURE_TYPES: { name: string; icon: LucideIcon }[] = [
