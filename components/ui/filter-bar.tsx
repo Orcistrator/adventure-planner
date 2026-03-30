@@ -54,25 +54,25 @@ export function FilterChip({
         )}
         <ChevronDown size={16} className="opacity-40" />
       </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={4} className="w-44 p-1">
-        <div className="max-h-64 overflow-y-auto">
+      <PopoverContent align="start" sideOffset={4} className="w-44 gap-0 p-1">
+        <div className="max-h-64 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {options.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => toggle(opt.value)}
-              className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-stone-300 transition-colors duration-100 hover:bg-stone-900 active:bg-stone-800"
             >
               <div
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                   selected.includes(opt.value)
-                    ? "border-stone-950 bg-stone-950"
-                    : "border-stone-300",
+                    ? "border-stone-300 bg-stone-300"
+                    : "border-stone-600",
                 )}
               >
                 {selected.includes(opt.value) && (
-                  <Check size={10} strokeWidth={3} className="text-white" />
+                  <Check size={10} strokeWidth={3} className="text-stone-950" />
                 )}
               </div>
               <span className="truncate">{opt.label}</span>
