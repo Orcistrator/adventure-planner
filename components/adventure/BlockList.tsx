@@ -91,6 +91,7 @@ interface SortableBlockRowProps {
   pendingFocusId: Id<'blocks'> | null;
   editTriggers: Record<string, number>;
   insertPickerBlockId: Id<'blocks'> | null;
+  firstParagraphId: Id<'blocks'> | null;
   onFocused: () => void;
   onCreateAfter: (block: Doc<'blocks'>) => void;
   onDeleteText: (blockId: Id<'blocks'>) => void;
@@ -107,6 +108,7 @@ function SortableBlockRow({
   pendingFocusId,
   editTriggers,
   insertPickerBlockId,
+  firstParagraphId,
   onFocused,
   onCreateAfter,
   onDeleteText,
@@ -185,6 +187,7 @@ function SortableBlockRow({
         onDeleteSelf={block.type === 'text' ? () => onDeleteText(block._id) : undefined}
         onInsertBlock={(type) => onInsertBlockAfter(block, type)}
         editTrigger={editTriggers[block._id]}
+        isFirstParagraph={block._id === firstParagraphId}
       />
     </div>
   );
@@ -320,11 +323,20 @@ export default function BlockList({ adventureId, blocks, isEditing }: BlockListP
   const ghostAfterOrder = lastBlock ? lastBlock.order : 0;
   const ghostPage = lastBlock ? (lastBlock.page ?? 1) : 1;
 
+  const firstParagraphId = sorted.find((b) => {
+    if (b.type !== 'text') return false;
+    const md = b.markdown.trim();
+    if (!md || /^#{1,4}\s/.test(md)) return false;
+    const lines = md.split('\n').filter((l) => l.trim());
+    return !lines.every((l) => /^[-*]\s/.test(l)) && !lines.every((l) => /^\d+\.\s/.test(l));
+  })?._id ?? null;
+
   const rowProps = {
     isEditing,
     pendingFocusId,
     editTriggers,
     insertPickerBlockId,
+    firstParagraphId,
     onFocused: () => setPendingFocusId(null),
     onCreateAfter: handleCreateAfter,
     onDeleteText: handleDeleteText,

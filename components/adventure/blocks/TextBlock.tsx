@@ -45,6 +45,7 @@ interface TextBlockProps {
   onCreateAfter?: () => void;
   onDeleteSelf?: () => void;
   onInsertBlock?: (type: string) => void;
+  isFirstParagraph?: boolean;
 }
 
 // ─── Markdown view renderer ──────────────────────────────────────────────────
@@ -70,7 +71,7 @@ function renderInline(text: string): React.ReactNode[] {
   });
 }
 
-function MarkdownView({ text }: { text: string }) {
+function MarkdownView({ text, isFirstParagraph }: { text: string; isFirstParagraph?: boolean }) {
   if (!text.trim()) return null;
 
   // Heading: entire text is a `# …` line
@@ -107,7 +108,7 @@ function MarkdownView({ text }: { text: string }) {
     );
   }
 
-  return <p className="text-gray-700 leading-relaxed">{renderInline(text)}</p>;
+  return <p className={`text-gray-700 leading-relaxed${isFirstParagraph ? ' drop-cap' : ''}`}>{renderInline(text)}</p>;
 }
 
 // ─── Entity type pill colors ───────────────────────────────────────────────
@@ -136,6 +137,7 @@ export default function TextBlock({
   onCreateAfter,
   onDeleteSelf,
   onInsertBlock,
+  isFirstParagraph,
 }: TextBlockProps) {
   const [draft, setDraft] = useState(markdown);
   const [toolbarRect, setToolbarRect] = useState<DOMRect | null>(null);
@@ -544,7 +546,7 @@ export default function TextBlock({
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (!isEditing) {
-    return <MarkdownView text={markdown} />;
+    return <MarkdownView text={markdown} isFirstParagraph={isFirstParagraph} />;
   }
 
   return (

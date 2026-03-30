@@ -21,6 +21,7 @@ interface BlockRendererProps {
   onDeleteSelf?: () => void;
   onInsertBlock?: (type: string) => void;
   editTrigger?: number;
+  isFirstParagraph?: boolean;
 }
 
 // ─── Legacy heading block ─────────────────────────────────────────────────────
@@ -70,6 +71,7 @@ export default function BlockRenderer({
   onDeleteSelf,
   onInsertBlock,
   editTrigger,
+  isFirstParagraph,
 }: BlockRendererProps) {
   const renderContent = () => {
     switch (block.type) {
@@ -84,6 +86,7 @@ export default function BlockRenderer({
             onCreateAfter={onCreateAfter}
             onDeleteSelf={onDeleteSelf}
             onInsertBlock={onInsertBlock}
+            isFirstParagraph={isFirstParagraph}
           />
         );
       case 'heading':
