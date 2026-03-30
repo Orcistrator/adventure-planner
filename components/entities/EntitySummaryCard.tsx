@@ -1,47 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import {
-  Skull,
-  User,
-  Package,
-  MapPin,
-  Shield,
-  Heart,
-  Pencil,
-  Triangle,
-} from "lucide-react";
+import { Shield, Heart, Pencil, Triangle } from "lucide-react";
 import { Doc } from "@/convex/_generated/dataModel";
 import { useEntityDrawer } from "./EntityDrawerContext";
 
 // ── Shared config ─────────────────────────────────────────────────────────────
 
 export const TYPE_CONFIG = {
-  monster: {
-    label: "Monster",
-    color:
-      "bg-[oklch(97%_0.001_106.4)] text-[oklch(44.4%_0.011_73.6)] border-[oklch(92.3%_0.003_48.7)]",
-    iconBg: "bg-red-50 text-red-400",
-    Icon: Skull,
-  },
-  character: {
-    label: "NPC",
-    color: "bg-blue-50 text-blue-600 border-blue-200",
-    iconBg: "bg-blue-50 text-blue-400",
-    Icon: User,
-  },
-  item: {
-    label: "Item",
-    color: "bg-amber-50 text-amber-600 border-amber-200",
-    iconBg: "bg-amber-50 text-amber-400",
-    Icon: Package,
-  },
-  location: {
-    label: "Location",
-    color: "bg-emerald-50 text-emerald-600 border-emerald-200",
-    iconBg: "bg-emerald-50 text-emerald-400",
-    Icon: MapPin,
-  },
+  monster: { label: "Monster", color: "text-stone-950 border-stone-300" },
+  character: { label: "NPC", color: "text-stone-950 border-stone-300" },
+  item: { label: "Item", color: "text-stone-950 border-stone-300" },
+  location: { label: "Location", color: "text-stone-950 border-stone-300" },
 } as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,13 +150,12 @@ interface EntitySummaryCardProps {
 }
 
 export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
-  const cfg = TYPE_CONFIG[entity.type];
   const subtitle = entitySubtitle(entity);
   const { open } = useEntityDrawer();
 
   return (
     <div
-      className="group flex cursor-pointer flex-col gap-3 rounded-xl [border-width:0.666667px] border-[oklch(92.8%_0.006_264.5)] bg-white p-3 transition-shadow duration-150 hover:[box-shadow:#00000033_0px_2px_3px]"
+      className="group flex cursor-pointer flex-col gap-2 rounded-3xl border border-stone-300 p-2 transition-shadow duration-150 hover:shadow-md"
       onClick={() => open(entity)}
     >
       {/* Square image */}
@@ -231,7 +200,11 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
             {subtitle}
           </p>
         )}
-        <EntityBadge entity={entity} />
+        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-out group-hover:grid-rows-[1fr]">
+          <div className="overflow-hidden">
+            <EntityBadge entity={entity} />
+          </div>
+        </div>
       </div>
     </div>
   );

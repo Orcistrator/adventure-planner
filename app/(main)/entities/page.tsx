@@ -122,7 +122,10 @@ export default function EntitiesPage() {
                   strokeWidth={1.5}
                 />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36 rounded-xl bg-stone-900 p-1 shadow-xl ring-0">
+              <DropdownMenuContent
+                align="end"
+                className="w-36 rounded-xl bg-stone-900 p-1 shadow-xl ring-0"
+              >
                 {ADD_OPTIONS.map(({ type, label, icon: Icon }) => (
                   <DropdownMenuItem
                     key={type}
@@ -163,35 +166,35 @@ export default function EntitiesPage() {
 
           {/* Grid */}
           <div className="flex-1 overflow-y-auto">
-          {filtered === undefined ? (
-            <div className="text-sm text-stone-400">Loading…</div>
-          ) : filtered.length === 0 ? (
-            <div className="text-sm text-stone-500 italic">
-              {activeTab === "all"
-                ? "No entities yet."
-                : `No ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()} yet.`}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 items-start gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              <AnimatePresence initial={false}>
-                {filtered.map((entity) => (
-                  <motion.div
-                    key={entity._id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <EntitySummaryCard
-                      entity={entity}
-                      onEdit={() => openEdit(entity)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
+            {filtered === undefined ? (
+              <div className="text-sm text-stone-400">Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div className="text-sm text-stone-500 italic">
+                {activeTab === "all"
+                  ? "No entities yet."
+                  : `No ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()} yet.`}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 items-start gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <AnimatePresence initial={false}>
+                  {filtered.map((entity) => (
+                    <motion.div
+                      key={entity._id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <EntitySummaryCard
+                        entity={entity}
+                        onEdit={() => openEdit(entity)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
       </div>

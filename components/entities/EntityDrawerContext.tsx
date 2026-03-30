@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Doc } from '@/convex/_generated/dataModel';
 
 interface EntityDrawerContextValue {
@@ -11,7 +11,7 @@ interface EntityDrawerContextValue {
 
 const EntityDrawerContext = createContext<EntityDrawerContextValue | null>(null);
 
-export function EntityDrawerProvider({ children }: { children: React.ReactNode }) {
+export function EntityDrawerProvider({ children }: { children: ReactNode }) {
   const [entity, setEntity] = useState<Doc<'entities'> | null>(null);
 
   const open = useCallback((e: Doc<'entities'>) => setEntity(e), []);
@@ -30,7 +30,6 @@ export function useEntityDrawer() {
   if (!ctx) {
     return {
       entity: null as Doc<'entities'> | null,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       open: (_entity: Doc<'entities'>) => {},
       close: () => {},
     };
