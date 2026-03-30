@@ -1,39 +1,46 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useRef } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
-import { BookOpen, Search, Trash2, Check, Plus } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { FilterChip, type FilterOption } from '@/components/ui/filter-bar';
+import { useState, useMemo, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { BookOpen, Search, Trash2, Check, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FilterChip, type FilterOption } from "@/components/ui/filter-bar";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { ADVENTURE_TYPES, ENVIRONMENTS, LEVEL_OPTIONS } from '@/lib/adventure-presets';
+} from "@/components/ui/dialog";
+import {
+  ADVENTURE_TYPES,
+  ENVIRONMENTS,
+  LEVEL_OPTIONS,
+} from "@/lib/adventure-presets";
 
 function toSlug(title: string): string {
   return (
-    title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') ||
-    'adventure'
+    title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "adventure"
   );
 }
 
-type SortKey = 'newest' | 'oldest' | 'az' | 'za';
+type SortKey = "newest" | "oldest" | "az" | "za";
 
 const TYPE_OPTIONS: FilterOption[] = ADVENTURE_TYPES.map((t) => ({
   value: t.name,
@@ -45,10 +52,13 @@ const ENV_OPTIONS: FilterOption[] = ENVIRONMENTS.map((e) => ({
   label: e.name,
 }));
 
-function levelMatches(levelStr: string | undefined, selectedLevels: string[]): boolean {
+function levelMatches(
+  levelStr: string | undefined,
+  selectedLevels: string[],
+): boolean {
   if (!levelStr) return false;
-  const [min, max] = levelStr.includes('-')
-    ? levelStr.split('-').map(Number)
+  const [min, max] = levelStr.includes("-")
+    ? levelStr.split("-").map(Number)
     : [Number(levelStr), Number(levelStr)];
   return selectedLevels.some((l) => {
     const n = Number(l);
@@ -62,24 +72,24 @@ export default function AdventuresPage() {
   const removeAdventure = useMutation(api.adventures.remove);
   const createAdventure = useMutation(api.adventures.create);
 
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortKey>('newest');
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortKey>("newest");
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [envFilter, setEnvFilter] = useState<string[]>([]);
   const [levelFilter, setLevelFilter] = useState<string[]>([]);
-  const [selected, setSelected] = useState<Set<Id<'adventures'>>>(new Set());
+  const [selected, setSelected] = useState<Set<Id<"adventures">>>(new Set());
   const [confirming, setConfirming] = useState(false);
 
   const [creating, setCreating] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
+  const [newTitle, setNewTitle] = useState("");
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return;
-    const slug = toSlug(newTitle) + '-' + Date.now().toString(36);
+    const slug = toSlug(newTitle) + "-" + Date.now().toString(36);
     await createAdventure({ title: newTitle.trim(), slug, tags: [] });
     setCreating(false);
-    setNewTitle('');
+    setNewTitle("");
     router.push(`/adventure/${slug}?edit=true`);
   };
 
@@ -102,15 +112,21 @@ export default function AdventuresPage() {
     }
 
     switch (sort) {
-      case 'oldest': result.sort((a, b) => a.createdAt - b.createdAt); break;
-      case 'az':     result.sort((a, b) => a.title.localeCompare(b.title)); break;
-      case 'za':     result.sort((a, b) => b.title.localeCompare(a.title)); break;
+      case "oldest":
+        result.sort((a, b) => a.createdAt - b.createdAt);
+        break;
+      case "az":
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "za":
+        result.sort((a, b) => b.title.localeCompare(a.title));
+        break;
     }
 
     return result;
   }, [adventures, search, sort, typeFilter, envFilter, levelFilter]);
 
-  const toggleSelect = (id: Id<'adventures'>) => {
+  const toggleSelect = (id: Id<"adventures">) => {
     setSelected((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -128,23 +144,31 @@ export default function AdventuresPage() {
   const hasSelection = selected.size > 0;
 
   return (
-    <div className="h-screen overflow-hidden bg-stone-200 p-8">
-      <div className="flex h-full flex-col gap-6 rounded-4xl bg-white pt-6 pr-6 pb-10 pl-10">
+    <div className="h-screen overflow-hidden bg-stone-200 p-2">
+      <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="font-heading text-[30px] leading-[1.2] text-[oklch(21%_0.034_264.7)]">
+          <h1 className="font-heading leading-tightest text-4xl text-stone-300">
             Adventures
           </h1>
           <button
-            onClick={() => { setNewTitle(''); setCreating(true); }}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-taupe-950 py-2 pr-2.5 pl-3 text-[14px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-stone-800 active:scale-[0.97]"
+            onClick={() => {
+              setNewTitle("");
+              setCreating(true);
+            }}
+            className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
           >
-            <Plus size={16} strokeWidth={1.5} className="text-[#A6A09B]" />
             New Adventure
           </button>
         </div>
 
-        <Dialog open={creating} onOpenChange={(o) => { setCreating(o); if (!o) setNewTitle(''); }}>
+        <Dialog
+          open={creating}
+          onOpenChange={(o) => {
+            setCreating(o);
+            if (!o) setNewTitle("");
+          }}
+        >
           <DialogContent showCloseButton={false}>
             <DialogHeader>
               <DialogTitle>New adventure</DialogTitle>
@@ -155,23 +179,29 @@ export default function AdventuresPage() {
               placeholder="Adventure title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreate();
+              }}
             />
             <DialogFooter>
-              <Button variant="outline" onClick={() => setCreating(false)}>Cancel</Button>
-              <Button onClick={handleCreate} disabled={!newTitle.trim()}>Create</Button>
+              <Button variant="outline" onClick={() => setCreating(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreate} disabled={!newTitle.trim()}>
+                Create
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         {/* Toolbar */}
-        <div className="flex flex-col gap-3 shrink-0">
+        <div className="flex shrink-0 flex-col gap-3">
           {/* Row 1: search + sort */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search
                 size={14}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
               />
               <Input
                 value={search}
@@ -219,12 +249,21 @@ export default function AdventuresPage() {
                 {confirming ? (
                   <>
                     <span className="text-sm font-medium text-red-600">
-                      Delete {selected.size} adventure{selected.size > 1 ? 's' : ''}?
+                      Delete {selected.size} adventure
+                      {selected.size > 1 ? "s" : ""}?
                     </span>
-                    <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirming(false)}
+                    >
                       Cancel
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={handleDelete}>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDelete}
+                    >
                       <Trash2 size={13} /> Confirm
                     </Button>
                   </>
@@ -233,7 +272,7 @@ export default function AdventuresPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setConfirming(true)}
-                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     <Trash2 size={13} /> Delete {selected.size}
                   </Button>
@@ -248,12 +287,17 @@ export default function AdventuresPage() {
           {adventures === undefined ? (
             <div className="flex flex-col gap-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
+                <div
+                  key={i}
+                  className="h-14 animate-pulse rounded-xl bg-gray-100"
+                />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {adventures.length === 0 ? 'No adventures yet.' : 'No adventures match.'}
+            <p className="text-muted-foreground text-sm">
+              {adventures.length === 0
+                ? "No adventures yet."
+                : "No adventures match."}
             </p>
           ) : (
             <ul className="flex flex-col gap-1">
@@ -265,29 +309,37 @@ export default function AdventuresPage() {
                       onClick={() => toggleSelect(adventure._id)}
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                         isSelected
-                          ? 'bg-stone-900 border-stone-900'
-                          : 'border-gray-300 hover:border-stone-400'
+                          ? "border-stone-900 bg-stone-900"
+                          : "border-gray-300 hover:border-stone-400"
                       }`}
                     >
-                      {isSelected && <Check size={11} strokeWidth={3} className="text-white" />}
+                      {isSelected && (
+                        <Check
+                          size={11}
+                          strokeWidth={3}
+                          className="text-white"
+                        />
+                      )}
                     </button>
                     <Link
                       href={`/adventure/${adventure.slug}`}
-                      className={`flex flex-1 items-center gap-3 px-4 py-3 rounded-xl transition-[background-color,transform] duration-150 active:scale-[0.99] hover:bg-gray-50 ${
-                        isSelected ? 'bg-stone-50' : ''
+                      className={`flex flex-1 items-center gap-3 rounded-xl px-4 py-3 transition-[background-color,transform] duration-150 hover:bg-gray-50 active:scale-[0.99] ${
+                        isSelected ? "bg-stone-50" : ""
                       }`}
                     >
-                      <BookOpen size={16} className="text-gray-400 shrink-0" />
-                      <span className="font-medium text-gray-900">{adventure.title}</span>
+                      <BookOpen size={16} className="shrink-0 text-gray-400" />
+                      <span className="font-medium text-gray-900">
+                        {adventure.title}
+                      </span>
                       {adventure.level && (
-                        <span className="text-xs text-gray-400 font-semibold tracking-wider uppercase ml-1">
+                        <span className="ml-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">
                           Lv {adventure.level}
                         </span>
                       )}
                       {adventure.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-xs border border-gray-200 text-gray-400 px-2 py-0.5 rounded uppercase tracking-wider font-semibold"
+                          className="rounded border border-gray-200 px-2 py-0.5 text-xs font-semibold tracking-wider text-gray-400 uppercase"
                         >
                           {tag}
                         </span>
