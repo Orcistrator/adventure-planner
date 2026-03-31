@@ -7,7 +7,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Check } from "lucide-react";
-import { CommandMenuButton } from "@/components/layout/CommandMenuButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -144,7 +143,6 @@ export default function AdventuresPage() {
           Adventures
         </h1>
         <div className="flex items-center gap-2">
-          <CommandMenuButton />
           <button
             onClick={() => {
               setNewTitle("");

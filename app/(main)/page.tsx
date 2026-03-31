@@ -8,7 +8,6 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { AnimatePresence } from "motion/react";
 import { CampaignCard } from "@/components/campaigns/CampaignCard";
 import { CampaignFormModal } from "@/components/campaigns/CampaignFormModal";
-import { CommandMenuButton } from "@/components/layout/CommandMenuButton";
 
 export default function CampaignsPage() {
   const campaigns = useQuery(api.campaigns.list);
@@ -30,7 +29,6 @@ export default function CampaignsPage() {
             Campaigns
           </h1>
           <div className="flex items-center gap-2">
-            <CommandMenuButton />
             <button
               onClick={() => setIsCreating(true)}
               className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
