@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Grid2x2Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
@@ -89,44 +89,34 @@ export default function EntitiesPage() {
 
   return (
     <>
-      <div className="flex h-full flex-col gap-6 rounded-lg bg-amber-50 px-40 py-20">
+      <div className="flex h-full flex-col gap-6 rounded-lg bg-olive-50/95 px-40 py-20">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="font-heading leading-tightest text-4xl text-olive-900/25">
             Entities
           </h1>
 
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 py-2 pr-2 pl-3 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800">
-                <Grid2x2Plus
-                  size={16}
-                  className="text-stone-400"
-                  strokeWidth={1.5}
-                />
-                Add Entity
-                <ChevronDown
-                  size={16}
-                  className="text-stone-200"
-                  strokeWidth={1.5}
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-36 rounded-md bg-stone-950 p-1 shadow-xl ring-0"
-              >
-                {ADD_OPTIONS.map(({ type, label }) => (
-                  <DropdownMenuItem
-                    key={type}
-                    onClick={() => openCreate(type)}
-                    className="cursor-pointer rounded-sm p-2 text-sm text-stone-300 focus:bg-stone-800 focus:text-stone-100"
-                  >
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-full border border-olive-900/15 bg-olive-900/5 py-2 pr-3 pl-4 text-sm font-medium text-olive-500 shadow-xs transition-colors duration-150 hover:bg-olive-900/10">
+              Add Entity
+              <ChevronDown
+                size={16}
+                className="text-olive-500"
+                strokeWidth={2}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36 p-1 ring-0">
+              {ADD_OPTIONS.map(({ type, label }) => (
+                <DropdownMenuItem
+                  key={type}
+                  onClick={() => openCreate(type)}
+                  className="cursor-pointer"
+                >
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Filter tabs */}
@@ -143,7 +133,7 @@ export default function EntitiesPage() {
                 <TabsTrigger key={tab.key} value={tab.key}>
                   {tab.label}
                   {isActive && count > 0 && (
-                    <span className="rounded-full text-xs font-medium text-stone-400">
+                    <span className="text-xs font-medium text-olive-500">
                       {count}
                     </span>
                   )}
@@ -156,9 +146,9 @@ export default function EntitiesPage() {
         {/* Grid */}
         <div className="scrollbar-hide flex-1 overflow-y-auto">
           {filtered === undefined ? (
-            <div className="text-sm text-stone-400">Loading…</div>
+            <div className="text-sm text-olive-400">Loading…</div>
           ) : filtered.length === 0 ? (
-            <div className="text-sm text-stone-500 italic">
+            <div className="text-sm text-olive-500 italic">
               {activeTab === "all"
                 ? "No entities yet."
                 : `No ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()} yet.`}

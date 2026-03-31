@@ -31,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn(figtree.variable, facultyGlyphic.variable)}>
-      <body className="font-sans selection:bg-stone-100 selection:text-stone-950">
+      <body className="font-sans selection:bg-amber-100 selection:text-stone-950">
         <ConvexClientProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ConvexClientProvider>

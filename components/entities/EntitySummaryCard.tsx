@@ -166,7 +166,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
             alt={entity.name}
             fill
             unoptimized
-            className="object-cover"
+            className="object-cover opacity-25 grayscale transition-[filter,opacity] duration-300 group-hover:opacity-100 group-hover:grayscale-0"
           />
         ) : (
           <div className="h-full w-full bg-stone-100" />

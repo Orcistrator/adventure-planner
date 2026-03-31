@@ -22,16 +22,16 @@ export default function CampaignsPage() {
 
   return (
     <>
-      <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
+      <div className="flex h-full flex-col gap-6 rounded-lg bg-olive-50/95 px-40 py-20">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="font-heading leading-tightest text-4xl text-stone-300">
+          <h1 className="font-heading leading-tightest text-4xl text-olive-900/25">
             Campaigns
           </h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCreating(true)}
-              className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
+              className="flex cursor-pointer items-center gap-2 rounded-full border border-olive-900/15 bg-olive-900/5 px-4 py-2 text-sm font-medium text-olive-500 shadow-xs transition-colors duration-150 hover:bg-olive-900/10"
             >
               New Campaign
             </button>
@@ -39,7 +39,7 @@ export default function CampaignsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div className="scrollbar-hide flex-1 overflow-y-auto">
           {campaigns === undefined ? (
             <div className="text-sm text-stone-400">Loading…</div>
           ) : campaigns.length === 0 ? (

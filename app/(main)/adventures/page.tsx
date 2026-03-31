@@ -136,10 +136,10 @@ export default function AdventuresPage() {
     typeFilter.length > 0 || envFilter.length > 0 || levelFilter.length > 0;
 
   return (
-    <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
+    <div className="flex h-full flex-col gap-6 rounded-lg bg-olive-50/95 px-40 py-20">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-heading leading-tightest text-4xl text-stone-300">
+        <h1 className="font-heading leading-tightest text-4xl text-olive-900/25">
           Adventures
         </h1>
         <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function AdventuresPage() {
               setNewTitle("");
               setCreating(true);
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 px-3 py-2 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800"
+            className="flex cursor-pointer items-center gap-2 rounded-full border border-olive-900/15 bg-olive-900/5 px-4 py-2 text-sm font-medium text-olive-500 shadow-xs transition-colors duration-150 hover:bg-olive-900/10"
           >
             New Adventure
           </button>
@@ -231,7 +231,7 @@ export default function AdventuresPage() {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
+      <div className="scrollbar-hide flex-1 overflow-y-auto">
         {adventures === undefined ? (
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, i) => (
@@ -275,21 +275,15 @@ export default function AdventuresPage() {
                     href={`/adventure/${adventure.slug}`}
                     className="flex min-w-0 flex-1"
                   >
-                    {/* Thumbnail — slides in on hover */}
-                    <div className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-400 ease-in-out group-hover:grid-cols-[1fr]">
-                      <div className="overflow-hidden">
-                        <div
-                          className={`mr-4 h-20 w-20 rounded-xl bg-cover bg-center ${adventure.coverImage ? "" : "bg-gray-100"}`}
-                          style={
-                            adventure.coverImage
-                              ? {
-                                  backgroundImage: `url(${adventure.coverImage})`,
-                                }
-                              : undefined
-                          }
-                        />
-                      </div>
-                    </div>
+                    {/* Thumbnail */}
+                    <div
+                      className={`mr-4 h-20 w-20 shrink-0 rounded-xl bg-cover bg-center transition-[filter,opacity] duration-300 ${adventure.coverImage ? "opacity-25 grayscale group-hover:opacity-100 group-hover:grayscale-0" : "bg-gray-100"}`}
+                      style={
+                        adventure.coverImage
+                          ? { backgroundImage: `url(${adventure.coverImage})` }
+                          : undefined
+                      }
+                    />
 
                     <div className="flex min-w-0 flex-1 flex-col gap-2">
                       {/* Top row: title + meta */}

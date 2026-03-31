@@ -39,40 +39,38 @@ export function FilterChip({
     <Popover>
       <PopoverTrigger
         className={cn(
-          "focus-visible:ring-ring/50 inline-flex h-9 items-center gap-1 rounded-md px-3 text-sm font-medium transition-[background-color,color,transform] duration-150 ease-out outline-none focus-visible:ring-2",
-          isActive
-            ? "bg-stone-100 text-stone-950 hover:bg-stone-200"
-            : "bg-stone-100 text-stone-950 hover:bg-stone-200",
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-olive-900/15 bg-olive-900/5 px-4 py-2 text-sm font-medium text-olive-500 shadow-xs transition-colors duration-150 outline-none hover:bg-olive-900/10",
+          isActive && "border-olive-900/25 bg-olive-900/10",
           className,
         )}
       >
         {label}
         {isActive && (
-          <span className="text-xs font-medium text-stone-400 tabular-nums">
+          <span className="tabular-nums text-olive-400/75 text-xs font-medium">
             {selected.length}
           </span>
         )}
-        <ChevronDown size={16} className="opacity-40" />
+        <ChevronDown size={14} className="opacity-40" />
       </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={4} className="w-44 gap-0 p-1">
+      <PopoverContent align="start" sideOffset={4} className="w-44 gap-0 bg-olive-900 p-1 text-olive-400">
         <div className="max-h-64 overflow-y-auto scrollbar-hide">
           {options.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => toggle(opt.value)}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-stone-300 transition-colors duration-100 hover:bg-stone-900 active:bg-stone-800"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-olive-400 transition-colors duration-100 hover:bg-olive-800 hover:text-olive-50 active:bg-olive-700"
             >
               <div
                 className={cn(
                   "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                   selected.includes(opt.value)
-                    ? "border-stone-300 bg-stone-300"
-                    : "border-stone-600",
+                    ? "border-olive-400 bg-olive-400"
+                    : "border-olive-600",
                 )}
               >
                 {selected.includes(opt.value) && (
-                  <Check size={10} strokeWidth={3} className="text-stone-950" />
+                  <Check size={10} strokeWidth={3} className="text-olive-900" />
                 )}
               </div>
               <span className="truncate">{opt.label}</span>
