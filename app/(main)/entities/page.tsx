@@ -90,15 +90,15 @@ export default function EntitiesPage() {
 
   return (
     <>
-      <div className="flex h-full flex-col gap-6 rounded-lg bg-white px-40 py-20">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="font-heading leading-tightest text-4xl text-stone-300">
-              Entities
-            </h1>
+      <div className="flex h-full flex-col gap-6 rounded-lg bg-amber-50 px-40 py-20">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="font-heading leading-tightest text-4xl text-olive-900/25">
+            Entities
+          </h1>
 
-            <div className="flex items-center gap-2">
-              <CommandMenuButton />
+          <div className="flex items-center gap-2">
+            <CommandMenuButton />
             <DropdownMenu>
               <DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-md bg-stone-900 py-2 pr-2 pl-3 text-sm font-medium text-stone-200 transition-colors duration-150 hover:bg-stone-800">
                 <Grid2x2Plus
@@ -128,66 +128,66 @@ export default function EntitiesPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            </div>
-          </div>
-
-          {/* Filter tabs */}
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as TabKey)}
-          >
-            <TabsList className="w-fit shrink-0 self-start">
-              {TABS.map((tab) => {
-                const count =
-                  tab.key === "all" ? allCount : (counts[tab.key] ?? 0);
-                const isActive = activeTab === tab.key;
-                return (
-                  <TabsTrigger key={tab.key} value={tab.key}>
-                    {tab.label}
-                    {isActive && count > 0 && (
-                      <span className="rounded-full text-xs font-medium text-stone-400">
-                        {count}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
-
-          {/* Grid */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            {filtered === undefined ? (
-              <div className="text-sm text-stone-400">Loading…</div>
-            ) : filtered.length === 0 ? (
-              <div className="text-sm text-stone-500 italic">
-                {activeTab === "all"
-                  ? "No entities yet."
-                  : `No ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()} yet.`}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 items-start gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                <AnimatePresence initial={false}>
-                  {filtered.map((entity) => (
-                    <motion.div
-                      key={entity._id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <EntitySummaryCard
-                        entity={entity}
-                        onEdit={() => openEdit(entity)}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Filter tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as TabKey)}
+        >
+          <TabsList className="w-fit shrink-0 self-start">
+            {TABS.map((tab) => {
+              const count =
+                tab.key === "all" ? allCount : (counts[tab.key] ?? 0);
+              const isActive = activeTab === tab.key;
+              return (
+                <TabsTrigger key={tab.key} value={tab.key}>
+                  {tab.label}
+                  {isActive && count > 0 && (
+                    <span className="rounded-full text-xs font-medium text-stone-400">
+                      {count}
+                    </span>
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </Tabs>
+
+        {/* Grid */}
+        <div className="scrollbar-hide flex-1 overflow-y-auto">
+          {filtered === undefined ? (
+            <div className="text-sm text-stone-400">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-sm text-stone-500 italic">
+              {activeTab === "all"
+                ? "No entities yet."
+                : `No ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()} yet.`}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 items-start gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+              <AnimatePresence initial={false}>
+                {filtered.map((entity) => (
+                  <motion.div
+                    key={entity._id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <EntitySummaryCard
+                      entity={entity}
+                      onEdit={() => openEdit(entity)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+      </div>
 
       <AnimatePresence>
         {activeModal === "monster" && (

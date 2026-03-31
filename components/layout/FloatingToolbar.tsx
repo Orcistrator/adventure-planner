@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import { Home, BookOpen, Box } from "lucide-react";
 
 const navItems = [
@@ -46,8 +46,45 @@ export default function FloatingToolbar() {
   const pathname = usePathname();
   const [logoHovered, setLogoHovered] = useState(false);
 
+  const rawY = useMotionValue(0);
+  const yOffset = useSpring(rawY, { damping: 40, stiffness: 300 });
+
+  useEffect(() => {
+    let prevScrollTop = 0;
+    let prevTime = performance.now();
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const onScroll = (e: Event) => {
+      const target = e.target as Element;
+      const scrollTop =
+        typeof target?.scrollTop === "number"
+          ? target.scrollTop
+          : window.scrollY;
+
+      const now = performance.now();
+      const dt = Math.max(now - prevTime, 1);
+      const velocity = ((scrollTop - prevScrollTop) / dt) * 16;
+
+      rawY.set(Math.max(-10, Math.min(10, -velocity)));
+      prevScrollTop = scrollTop;
+      prevTime = now;
+
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => rawY.set(0), 100);
+    };
+
+    document.addEventListener("scroll", onScroll, { capture: true });
+    return () => {
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      clearTimeout(timeoutId);
+    };
+  }, [rawY]);
+
   return (
-    <div className="fixed top-2 left-2 z-50 flex w-12 flex-col rounded-[120px] bg-stone-900">
+    <motion.div
+      style={{ y: yOffset }}
+      className="fixed top-10 left-10 z-50 flex w-12 flex-col rounded-full bg-olive-900"
+    >
       {/* Logo — links home */}
       <Link
         href="/"
@@ -60,7 +97,7 @@ export default function FloatingToolbar() {
           viewBox="0 0 24 18"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="text-stone-500"
+          className="text-olive-500"
           style={{ width: 24, height: "auto", flexShrink: 0 }}
         >
           {LOGO_PATHS.resting.map((restingPath, i) => (
@@ -90,18 +127,18 @@ export default function FloatingToolbar() {
               href={href}
               title={label}
               className={`flex size-8 items-center justify-center rounded-full transition-[background-color,transform] duration-150 ease-out active:scale-95 ${
-                isActive ? "bg-stone-700/50" : "hover:bg-stone-700/35"
+                isActive ? "bg-olive-700" : "hover:bg-olive-800"
               }`}
             >
               <Icon
                 size={16}
                 strokeWidth={1.5}
-                className={isActive ? "text-stone-100" : "text-stone-400"}
+                className={isActive ? "text-olive-200" : "text-olive-400"}
               />
             </Link>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }
