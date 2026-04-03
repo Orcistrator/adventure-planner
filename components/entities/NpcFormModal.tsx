@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -72,11 +73,58 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
   const [reactions, setReactions] = useState<AbilityEntry[]>(entity?.reactions ?? []);
 
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState('');
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
   const numOrUndef = (s: string) => { const n = parseInt(s, 10); return isNaN(n) ? undefined : n; };
   const strOrUndef = (s: string) => s.trim() || undefined;
+
+  async function generateFromName() {
+    setGenerating(true);
+    setGenerateError('');
+    try {
+      const res = await fetch('/api/generate-entity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type: 'character' }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
+      if (data.description) setDescription(data.description);
+      if (data.role) setRole(data.role);
+      if (data.race) setRace(data.race);
+      if (data.alignment) setAlignment(data.alignment);
+      if (data.ac) setAc(String(data.ac));
+      if (data.acNote) setAcNote(data.acNote);
+      if (data.hp) setHp(String(data.hp));
+      if (data.hpFormula) setHpFormula(data.hpFormula);
+      if (data.speed) setSpeed(data.speed);
+      if (data.cr) setCr(String(data.cr));
+      if (data.proficiencyBonus) setProfBonus(String(data.proficiencyBonus));
+      if (data.str) setStr(String(data.str));
+      if (data.dex) setDex(String(data.dex));
+      if (data.con) setCon(String(data.con));
+      if (data.int) setInt(String(data.int));
+      if (data.wis) setWis(String(data.wis));
+      if (data.cha) setCha(String(data.cha));
+      if (data.senses) setSenses(data.senses);
+      if (data.languages) setLanguages(data.languages);
+      if (data.personality) setPersonality(data.personality);
+      if (data.ideals) setIdeals(data.ideals);
+      if (data.bonds) setBonds(data.bonds);
+      if (data.flaws) setFlaws(data.flaws);
+      if (data.backstory) setBackstory(data.backstory);
+      if (data.traits?.length) setTraits(data.traits);
+      if (data.actions?.length) setActions(data.actions);
+      if (data.reactions?.length) setReactions(data.reactions);
+    } catch {
+      setGenerateError('Could not reach Ollama — is it running?');
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   const abilityScores = { str, dex, con, int, wis, cha };
   const setters = { str: setStr, dex: setDex, con: setCon, int: setInt, wis: setWis, cha: setCha };
@@ -128,7 +176,21 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
     >
       <SectionHeader>Basic Info</SectionHeader>
 
-      <Field label="Name"><input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="NPC name" className={inputCls} /></Field>
+      <Field label="Name">
+        <div className="flex gap-2">
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="NPC name" className={inputCls} />
+          <button
+            type="button"
+            onClick={generateFromName}
+            disabled={!name.trim() || generating}
+            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Sparkles size={13} />
+            {generating ? 'Generating…' : 'Generate'}
+          </button>
+        </div>
+        {generateError && <p className="text-[12px] text-red-500 mt-1">{generateError}</p>}
+      </Field>
 
       <div className="grid grid-cols-3 gap-3">
         <Field label="Role" optional><input type="text" value={role} onChange={(e) => setRole(e.target.value)} placeholder="Town Guard" className={inputCls} /></Field>

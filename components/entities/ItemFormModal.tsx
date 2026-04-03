@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -35,10 +36,37 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
   const [tables, setTables] = useState<RollTable[]>(entity?.tables ?? []);
 
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState('');
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
   const strOrUndef = (s: string) => s.trim() || undefined;
+
+  async function generateFromName() {
+    setGenerating(true);
+    setGenerateError('');
+    try {
+      const res = await fetch('/api/generate-entity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type: 'item' }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
+      if (data.description) setDescription(data.description);
+      if (data.itemType) setItemType(data.itemType);
+      if (data.rarity) setRarity(data.rarity);
+      if (typeof data.requiresAttunement === 'boolean') setRequiresAttunement(data.requiresAttunement);
+      if (data.cost) setCost(data.cost);
+      if (data.weight) setWeight(data.weight);
+      if (data.itemProperties) setItemProperties(data.itemProperties);
+    } catch {
+      setGenerateError('Could not reach Ollama — is it running?');
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +106,21 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
     >
       <SectionHeader>Basic Info</SectionHeader>
 
-      <Field label="Name"><input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Item name" className={inputCls} /></Field>
+      <Field label="Name">
+        <div className="flex gap-2">
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Item name" className={inputCls} />
+          <button
+            type="button"
+            onClick={generateFromName}
+            disabled={!name.trim() || generating}
+            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Sparkles size={13} />
+            {generating ? 'Generating…' : 'Generate'}
+          </button>
+        </div>
+        {generateError && <p className="text-[12px] text-red-500 mt-1">{generateError}</p>}
+      </Field>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Item Type" optional>
