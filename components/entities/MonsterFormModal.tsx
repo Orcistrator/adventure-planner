@@ -5,7 +5,9 @@ import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
-import { X, Plus, Trash2, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
+import { GenerativeInput, GenerativeTextarea } from './GenerateField';
+import { generateEntity } from './generateEntity';
 import { slugify } from '@/lib/utils';
 import { ImageField } from './form-utils';
 
@@ -190,56 +192,40 @@ export function MonsterFormModal({ entity, onClose, onDelete }: Props) {
   );
 
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState('');
 
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
-  async function generateFromName() {
-    setGenerating(true);
-    setGenerateError('');
-    try {
-      const res = await fetch('/api/generate-entity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type: 'monster' }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
-      if (data.description) setDescription(data.description);
-      if (data.size) setSize(data.size);
-      if (data.creatureType) setCreatureType(data.creatureType);
-      if (data.alignment) setAlignment(data.alignment);
-      if (data.ac) setAc(String(data.ac));
-      if (data.acNote) setAcNote(data.acNote);
-      if (data.hp) setHp(String(data.hp));
-      if (data.hpFormula) setHpFormula(data.hpFormula);
-      if (data.speed) setSpeed(data.speed);
-      if (data.cr) setCr(String(data.cr));
-      if (data.xp) setXp(String(data.xp));
-      if (data.proficiencyBonus) setProfBonus(String(data.proficiencyBonus));
-      if (data.str) setStr(String(data.str));
-      if (data.dex) setDex(String(data.dex));
-      if (data.con) setCon(String(data.con));
-      if (data.int) setInt(String(data.int));
-      if (data.wis) setWis(String(data.wis));
-      if (data.cha) setCha(String(data.cha));
-      if (data.senses) setSenses(data.senses);
-      if (data.languages) setLanguages(data.languages);
-      if (data.immunities) setImmunities(data.immunities);
-      if (data.resistances) setResistances(data.resistances);
-      if (data.vulnerabilities) setVulnerabilities(data.vulnerabilities);
-      if (data.conditionImmunities) setConditionImmunities(data.conditionImmunities);
-      if (data.traits?.length) setTraits(data.traits);
-      if (data.actions?.length) setActions(data.actions);
-      if (data.bonusActions?.length) setBonusActions(data.bonusActions);
-      if (data.reactions?.length) setReactions(data.reactions);
-    } catch {
-      setGenerateError('Could not reach Ollama — is it running?');
-    } finally {
-      setGenerating(false);
-    }
+  async function generateAll() {
+    const data = await generateEntity(name, 'monster');
+    if (data.description) setDescription(data.description);
+    if (data.size) setSize(data.size);
+    if (data.creatureType) setCreatureType(data.creatureType);
+    if (data.alignment) setAlignment(data.alignment);
+    if (data.ac) setAc(String(data.ac));
+    if (data.acNote) setAcNote(data.acNote);
+    if (data.hp) setHp(String(data.hp));
+    if (data.hpFormula) setHpFormula(data.hpFormula);
+    if (data.speed) setSpeed(data.speed);
+    if (data.cr) setCr(String(data.cr));
+    if (data.xp) setXp(String(data.xp));
+    if (data.proficiencyBonus) setProfBonus(String(data.proficiencyBonus));
+    if (data.str) setStr(String(data.str));
+    if (data.dex) setDex(String(data.dex));
+    if (data.con) setCon(String(data.con));
+    if (data.int) setInt(String(data.int));
+    if (data.wis) setWis(String(data.wis));
+    if (data.cha) setCha(String(data.cha));
+    if (data.senses) setSenses(data.senses);
+    if (data.languages) setLanguages(data.languages);
+    if (data.immunities) setImmunities(data.immunities);
+    if (data.resistances) setResistances(data.resistances);
+    if (data.vulnerabilities) setVulnerabilities(data.vulnerabilities);
+    if (data.conditionImmunities) setConditionImmunities(data.conditionImmunities);
+    if (data.traits?.length) setTraits(data.traits);
+    if (data.actions?.length) setActions(data.actions);
+    if (data.bonusActions?.length) setBonusActions(data.bonusActions);
+    if (data.reactions?.length) setReactions(data.reactions);
   }
 
   function numOrUndef(s: string) {
@@ -399,29 +385,17 @@ export function MonsterFormModal({ entity, onClose, onDelete }: Props) {
 
             <div className="flex flex-col gap-1.5">
               <Label>Name</Label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  autoFocus
-                  placeholder="Monster name"
-                  className={inputCls}
-                />
-                <button
-                  type="button"
-                  onClick={generateFromName}
-                  disabled={!name.trim() || generating}
-                  className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Sparkles size={13} />
-                  {generating ? 'Generating…' : 'Generate'}
-                </button>
-              </div>
-              {generateError && (
-                <p className="text-[12px] text-red-500">{generateError}</p>
-              )}
+              <GenerativeInput
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+                placeholder="Monster name"
+                className={inputCls}
+                onGenerate={generateAll}
+                generateDisabled={!name.trim()}
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
@@ -450,12 +424,17 @@ export function MonsterFormModal({ entity, onClose, onDelete }: Props) {
 
             <div className="flex flex-col gap-1.5">
               <Label optional>Description / Lore</Label>
-              <textarea
+              <GenerativeTextarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
                 placeholder="Flavor text or DM notes"
                 className={inputCls + ' resize-none'}
+                onGenerate={async () => {
+                  const data = await generateEntity(name, 'monster', 'description', { size, creatureType, alignment });
+                  if (data.value) setDescription(data.value);
+                }}
+                generateDisabled={!name.trim()}
               />
             </div>
 

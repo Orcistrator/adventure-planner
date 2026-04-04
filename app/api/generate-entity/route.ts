@@ -7,8 +7,11 @@ const SYSTEM_PROMPT =
   'You are a Dungeons & Dragons 5e game master assistant. Generate realistic, flavourful entity data in JSON. Follow D&D 5e rules and conventions. Return only valid JSON with no explanation or markdown.';
 
 type EntityType = 'monster' | 'character' | 'item' | 'location';
+type EntityField = 'description' | 'personality' | 'ideals' | 'bonds' | 'flaws' | 'backstory' | 'itemProperties';
 
-function buildPrompt(name: string, type: EntityType): string {
+// ── Full entity generation ────────────────────────────────────────────────────
+
+function buildFullPrompt(name: string, type: EntityType): string {
   switch (type) {
     case 'monster':
       return `Generate a complete D&D 5e monster stat block for: "${name}"
@@ -96,33 +99,90 @@ Return a JSON object with exactly these fields:
   }
 }
 
+// ── Single-field generation ───────────────────────────────────────────────────
+
+function buildFieldPrompt(
+  name: string,
+  type: EntityType,
+  field: EntityField,
+  context: Record<string, string>
+): string {
+  const ctxParts = Object.entries(context)
+    .filter(([, v]) => v?.trim())
+    .map(([k, v]) => `${k}: ${v}`);
+  const ctx = ctxParts.length ? ` (${ctxParts.join(', ')})` : '';
+
+  switch (field) {
+    case 'description':
+      switch (type) {
+        case 'monster':  return `Write a 2-3 sentence atmospheric flavour text / lore for a D&D 5e monster named "${name}"${ctx}. Return JSON: {"value": "the text"}`;
+        case 'character': return `Write a 2-3 sentence physical description of D&D 5e NPC "${name}"${ctx}. Include appearance and bearing. Return JSON: {"value": "the text"}`;
+        case 'item':     return `Write a 3-4 sentence description of the appearance, history, and magical qualities of D&D 5e item "${name}"${ctx}. Return JSON: {"value": "the text"}`;
+        case 'location': return `Write a 3-4 sentence description of D&D 5e location "${name}"${ctx}. Cover atmosphere, history, and what makes it notable. Return JSON: {"value": "the text"}`;
+      }
+    case 'personality':
+      return `Write 1-2 sentences about the personality, mannerisms, and speech patterns of D&D 5e NPC "${name}"${ctx}. Return JSON: {"value": "the text"}`;
+    case 'ideals':
+      return `Write what drives or motivates D&D 5e NPC "${name}"${ctx} — their core beliefs or ideals (1 sentence). Return JSON: {"value": "the text"}`;
+    case 'bonds':
+      return `Write who or what D&D 5e NPC "${name}"${ctx} cares most about (1 sentence). Return JSON: {"value": "the text"}`;
+    case 'flaws':
+      return `Write the weakness, vice, or blind spot of D&D 5e NPC "${name}"${ctx} (1 sentence). Return JSON: {"value": "the text"}`;
+    case 'backstory':
+      return `Write a 2-3 sentence background and history for D&D 5e NPC "${name}"${ctx}. Return JSON: {"value": "the text"}`;
+    case 'itemProperties':
+      return `Write the mechanical properties, charges, bonuses, and exact rules text for D&D 5e item "${name}"${ctx}. Be specific and rules-accurate. Return JSON: {"value": "the text"}`;
+  }
+  return `Generate content for the "${field}" field of a D&D 5e ${type} named "${name}"${ctx}. Return JSON: {"value": "the text"}`;
+}
+
+// ── Route handler ─────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
-  const { name, type } = (await req.json()) as { name: string; type: EntityType };
+  const body = (await req.json()) as {
+    name: string;
+    type: EntityType;
+    field?: EntityField;
+    context?: Record<string, string>;
+  };
+
+  const { name, type, field, context = {} } = body;
 
   if (!name?.trim() || !type) {
     return NextResponse.json({ error: 'name and type are required' }, { status: 400 });
   }
+
+  const prompt = field
+    ? buildFieldPrompt(name, type, field, context)
+    : buildFullPrompt(name, type);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120_000);
 
   let ollamaRes: Response;
   try {
     ollamaRes = await fetch(OLLAMA_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         model: MODEL,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: buildPrompt(name, type) },
+          { role: 'user', content: prompt },
         ],
         format: 'json',
         stream: false,
       }),
     });
-  } catch {
+  } catch (e) {
+    const isTimeout = e instanceof Error && e.name === 'AbortError';
     return NextResponse.json(
-      { error: 'Could not reach Ollama — is it running on port 11434?' },
-      { status: 503 }
+      { error: isTimeout ? 'Ollama timed out after 120s' : 'Could not reach Ollama — is it running on port 11434?' },
+      { status: isTimeout ? 504 : 503 }
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (!ollamaRes.ok) {
@@ -131,8 +191,6 @@ export async function POST(req: NextRequest) {
 
   const data = await ollamaRes.json();
   const content: string = data.message?.content ?? '';
-
-  // Strip markdown code fences if present
   const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 
   try {

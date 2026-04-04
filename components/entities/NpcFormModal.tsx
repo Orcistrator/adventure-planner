@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
 import { useMutation } from 'convex/react';
+import { GenerativeInput, GenerativeTextarea } from './GenerateField';
+import { generateEntity } from './generateEntity';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { slugify } from '@/lib/utils';
@@ -73,57 +74,41 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
   const [reactions, setReactions] = useState<AbilityEntry[]>(entity?.reactions ?? []);
 
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState('');
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
   const numOrUndef = (s: string) => { const n = parseInt(s, 10); return isNaN(n) ? undefined : n; };
   const strOrUndef = (s: string) => s.trim() || undefined;
 
-  async function generateFromName() {
-    setGenerating(true);
-    setGenerateError('');
-    try {
-      const res = await fetch('/api/generate-entity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type: 'character' }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
-      if (data.description) setDescription(data.description);
-      if (data.role) setRole(data.role);
-      if (data.race) setRace(data.race);
-      if (data.alignment) setAlignment(data.alignment);
-      if (data.ac) setAc(String(data.ac));
-      if (data.acNote) setAcNote(data.acNote);
-      if (data.hp) setHp(String(data.hp));
-      if (data.hpFormula) setHpFormula(data.hpFormula);
-      if (data.speed) setSpeed(data.speed);
-      if (data.cr) setCr(String(data.cr));
-      if (data.proficiencyBonus) setProfBonus(String(data.proficiencyBonus));
-      if (data.str) setStr(String(data.str));
-      if (data.dex) setDex(String(data.dex));
-      if (data.con) setCon(String(data.con));
-      if (data.int) setInt(String(data.int));
-      if (data.wis) setWis(String(data.wis));
-      if (data.cha) setCha(String(data.cha));
-      if (data.senses) setSenses(data.senses);
-      if (data.languages) setLanguages(data.languages);
-      if (data.personality) setPersonality(data.personality);
-      if (data.ideals) setIdeals(data.ideals);
-      if (data.bonds) setBonds(data.bonds);
-      if (data.flaws) setFlaws(data.flaws);
-      if (data.backstory) setBackstory(data.backstory);
-      if (data.traits?.length) setTraits(data.traits);
-      if (data.actions?.length) setActions(data.actions);
-      if (data.reactions?.length) setReactions(data.reactions);
-    } catch {
-      setGenerateError('Could not reach Ollama — is it running?');
-    } finally {
-      setGenerating(false);
-    }
+  async function generateAll() {
+    const data = await generateEntity(name, 'character');
+    if (data.description) setDescription(data.description);
+    if (data.role) setRole(data.role);
+    if (data.race) setRace(data.race);
+    if (data.alignment) setAlignment(data.alignment);
+    if (data.ac) setAc(String(data.ac));
+    if (data.acNote) setAcNote(data.acNote);
+    if (data.hp) setHp(String(data.hp));
+    if (data.hpFormula) setHpFormula(data.hpFormula);
+    if (data.speed) setSpeed(data.speed);
+    if (data.cr) setCr(String(data.cr));
+    if (data.proficiencyBonus) setProfBonus(String(data.proficiencyBonus));
+    if (data.str) setStr(String(data.str));
+    if (data.dex) setDex(String(data.dex));
+    if (data.con) setCon(String(data.con));
+    if (data.int) setInt(String(data.int));
+    if (data.wis) setWis(String(data.wis));
+    if (data.cha) setCha(String(data.cha));
+    if (data.senses) setSenses(data.senses);
+    if (data.languages) setLanguages(data.languages);
+    if (data.personality) setPersonality(data.personality);
+    if (data.ideals) setIdeals(data.ideals);
+    if (data.bonds) setBonds(data.bonds);
+    if (data.flaws) setFlaws(data.flaws);
+    if (data.backstory) setBackstory(data.backstory);
+    if (data.traits?.length) setTraits(data.traits);
+    if (data.actions?.length) setActions(data.actions);
+    if (data.reactions?.length) setReactions(data.reactions);
   }
 
   const abilityScores = { str, dex, con, int, wis, cha };
@@ -177,19 +162,7 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
       <SectionHeader>Basic Info</SectionHeader>
 
       <Field label="Name">
-        <div className="flex gap-2">
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="NPC name" className={inputCls} />
-          <button
-            type="button"
-            onClick={generateFromName}
-            disabled={!name.trim() || generating}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Sparkles size={13} />
-            {generating ? 'Generating…' : 'Generate'}
-          </button>
-        </div>
-        {generateError && <p className="text-[12px] text-red-500 mt-1">{generateError}</p>}
+        <GenerativeInput type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="NPC name" className={inputCls} onGenerate={generateAll} generateDisabled={!name.trim()} />
       </Field>
 
       <div className="grid grid-cols-3 gap-3">
@@ -203,7 +176,9 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
         </Field>
       </div>
 
-      <Field label="Description / Appearance" optional><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="What does this NPC look like?" className={inputCls + ' resize-none'} /></Field>
+      <Field label="Description / Appearance" optional>
+        <GenerativeTextarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="What does this NPC look like?" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','description', { role, race, alignment }); if (d.value) setDescription(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
       <ImageField value={image} onChange={setImage} />
 
       <SectionHeader>Combat Stats</SectionHeader>
@@ -250,13 +225,23 @@ export function NpcFormModal({ entity, onClose, onDelete }: Props) {
       </div>
 
       <SectionHeader>Personality</SectionHeader>
-      <Field label="Personality Traits" optional><textarea value={personality} onChange={(e) => setPersonality(e.target.value)} rows={2} placeholder="How does this NPC act and speak?" className={inputCls + ' resize-none'} /></Field>
+      <Field label="Personality Traits" optional>
+        <GenerativeTextarea value={personality} onChange={(e) => setPersonality(e.target.value)} rows={2} placeholder="How does this NPC act and speak?" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','personality', { role, race, alignment }); if (d.value) setPersonality(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
       <div className="grid grid-cols-3 gap-3">
-        <Field label="Ideals" optional><textarea value={ideals} onChange={(e) => setIdeals(e.target.value)} rows={2} placeholder="What drives them?" className={inputCls + ' resize-none'} /></Field>
-        <Field label="Bonds" optional><textarea value={bonds} onChange={(e) => setBonds(e.target.value)} rows={2} placeholder="Who or what do they care about?" className={inputCls + ' resize-none'} /></Field>
-        <Field label="Flaws" optional><textarea value={flaws} onChange={(e) => setFlaws(e.target.value)} rows={2} placeholder="What are their weaknesses?" className={inputCls + ' resize-none'} /></Field>
+        <Field label="Ideals" optional>
+          <GenerativeTextarea value={ideals} onChange={(e) => setIdeals(e.target.value)} rows={2} placeholder="What drives them?" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','ideals', { role, race, alignment }); if (d.value) setIdeals(d.value); }} generateDisabled={!name.trim()} />
+        </Field>
+        <Field label="Bonds" optional>
+          <GenerativeTextarea value={bonds} onChange={(e) => setBonds(e.target.value)} rows={2} placeholder="Who or what do they care about?" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','bonds', { role, race, alignment }); if (d.value) setBonds(d.value); }} generateDisabled={!name.trim()} />
+        </Field>
+        <Field label="Flaws" optional>
+          <GenerativeTextarea value={flaws} onChange={(e) => setFlaws(e.target.value)} rows={2} placeholder="What are their weaknesses?" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','flaws', { role, race, alignment }); if (d.value) setFlaws(d.value); }} generateDisabled={!name.trim()} />
+        </Field>
       </div>
-      <Field label="Backstory" optional><textarea value={backstory} onChange={(e) => setBackstory(e.target.value)} rows={3} placeholder="Background and history…" className={inputCls + ' resize-none'} /></Field>
+      <Field label="Backstory" optional>
+        <GenerativeTextarea value={backstory} onChange={(e) => setBackstory(e.target.value)} rows={3} placeholder="Background and history…" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'character','backstory', { role, race, alignment }); if (d.value) setBackstory(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
 
       <AbilityList label="Traits" entries={traits} onChange={setTraits} />
       <AbilityList label="Actions" entries={actions} onChange={setActions} />

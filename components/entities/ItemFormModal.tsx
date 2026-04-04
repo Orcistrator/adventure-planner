@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
 import { useMutation } from 'convex/react';
+import { GenerativeInput, GenerativeTextarea } from './GenerateField';
+import { generateEntity } from './generateEntity';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
 import { slugify } from '@/lib/utils';
@@ -36,36 +37,20 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
   const [tables, setTables] = useState<RollTable[]>(entity?.tables ?? []);
 
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState('');
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
   const strOrUndef = (s: string) => s.trim() || undefined;
 
-  async function generateFromName() {
-    setGenerating(true);
-    setGenerateError('');
-    try {
-      const res = await fetch('/api/generate-entity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type: 'item' }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
-      if (data.description) setDescription(data.description);
-      if (data.itemType) setItemType(data.itemType);
-      if (data.rarity) setRarity(data.rarity);
-      if (typeof data.requiresAttunement === 'boolean') setRequiresAttunement(data.requiresAttunement);
-      if (data.cost) setCost(data.cost);
-      if (data.weight) setWeight(data.weight);
-      if (data.itemProperties) setItemProperties(data.itemProperties);
-    } catch {
-      setGenerateError('Could not reach Ollama — is it running?');
-    } finally {
-      setGenerating(false);
-    }
+  async function generateAll() {
+    const data = await generateEntity(name, 'item');
+    if (data.description) setDescription(data.description);
+    if (data.itemType) setItemType(data.itemType);
+    if (data.rarity) setRarity(data.rarity);
+    if (typeof data.requiresAttunement === 'boolean') setRequiresAttunement(data.requiresAttunement);
+    if (data.cost) setCost(data.cost);
+    if (data.weight) setWeight(data.weight);
+    if (data.itemProperties) setItemProperties(data.itemProperties);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -107,19 +92,7 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
       <SectionHeader>Basic Info</SectionHeader>
 
       <Field label="Name">
-        <div className="flex gap-2">
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Item name" className={inputCls} />
-          <button
-            type="button"
-            onClick={generateFromName}
-            disabled={!name.trim() || generating}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Sparkles size={13} />
-            {generating ? 'Generating…' : 'Generate'}
-          </button>
-        </div>
-        {generateError && <p className="text-[12px] text-red-500 mt-1">{generateError}</p>}
+        <GenerativeInput type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Item name" className={inputCls} onGenerate={generateAll} generateDisabled={!name.trim()} />
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
@@ -142,7 +115,9 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
         <Field label="Weight" optional><input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="1 lb." className={inputCls} /></Field>
       </div>
 
-      <Field label="Properties" optional><input type="text" value={itemProperties} onChange={(e) => setItemProperties(e.target.value)} placeholder="Light, Finesse, Thrown (20/60)" className={inputCls} /></Field>
+      <Field label="Properties" optional>
+        <GenerativeInput type="text" value={itemProperties} onChange={(e) => setItemProperties(e.target.value)} placeholder="Light, Finesse, Thrown (20/60)" className={inputCls} onGenerate={async () => { const d = await generateEntity(name, 'item','itemProperties', { itemType, rarity }); if (d.value) setItemProperties(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
 
       <label className="flex items-center gap-2.5 cursor-pointer">
         <input
@@ -154,7 +129,9 @@ export function ItemFormModal({ entity, onClose, onDelete }: Props) {
         <span className="text-[13px] text-[oklch(44.6%_0.030_256.8)]">Requires attunement</span>
       </label>
 
-      <Field label="Description" optional><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Describe the item and its effects…" className={inputCls + ' resize-none'} /></Field>
+      <Field label="Description" optional>
+        <GenerativeTextarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Describe the item and its effects…" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'item','description', { itemType, rarity }); if (d.value) setDescription(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
       <ImageField value={image} onChange={setImage} />
 
       <RollTableEditor tables={tables} onChange={setTables} />

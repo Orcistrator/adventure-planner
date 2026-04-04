@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Plus, Sparkles } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { GenerativeInput, GenerativeTextarea } from './GenerateField';
+import { generateEntity } from './generateEntity';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -33,33 +35,17 @@ export function LocationFormModal({ entity, onClose, onDelete }: Props) {
   const [tables, setTables] = useState<RollTable[]>(entity?.tables ?? []);
 
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState('');
   const createEntity = useMutation(api.entities.create);
   const updateEntity = useMutation(api.entities.update);
 
   const strOrUndef = (s: string) => s.trim() || undefined;
 
-  async function generateFromName() {
-    setGenerating(true);
-    setGenerateError('');
-    try {
-      const res = await fetch('/api/generate-entity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type: 'location' }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGenerateError(data.error ?? 'Generation failed'); return; }
-      if (data.description) setDescription(data.description);
-      if (data.locationType) setLocationType(data.locationType);
-      if (data.region) setRegion(data.region);
-      if (data.notableFeatures?.length) setNotableFeatures(data.notableFeatures);
-    } catch {
-      setGenerateError('Could not reach Ollama — is it running?');
-    } finally {
-      setGenerating(false);
-    }
+  async function generateAll() {
+    const data = await generateEntity(name, 'location');
+    if (data.description) setDescription(data.description);
+    if (data.locationType) setLocationType(data.locationType);
+    if (data.region) setRegion(data.region);
+    if (data.notableFeatures?.length) setNotableFeatures(data.notableFeatures);
   }
 
   function addFeature() { setNotableFeatures((f) => [...f, '']); }
@@ -102,19 +88,7 @@ export function LocationFormModal({ entity, onClose, onDelete }: Props) {
       <SectionHeader>Basic Info</SectionHeader>
 
       <Field label="Name">
-        <div className="flex gap-2">
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Location name" className={inputCls} />
-          <button
-            type="button"
-            onClick={generateFromName}
-            disabled={!name.trim() || generating}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[13px] font-medium text-indigo-600 hover:bg-indigo-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Sparkles size={13} />
-            {generating ? 'Generating…' : 'Generate'}
-          </button>
-        </div>
-        {generateError && <p className="text-[12px] text-red-500 mt-1">{generateError}</p>}
+        <GenerativeInput type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus placeholder="Location name" className={inputCls} onGenerate={generateAll} generateDisabled={!name.trim()} />
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
@@ -127,7 +101,9 @@ export function LocationFormModal({ entity, onClose, onDelete }: Props) {
         <Field label="Region" optional><input type="text" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="The Thornwood" className={inputCls} /></Field>
       </div>
 
-      <Field label="Description" optional><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Describe the location — atmosphere, history, what makes it notable…" className={inputCls + ' resize-none'} /></Field>
+      <Field label="Description" optional>
+        <GenerativeTextarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Describe the location — atmosphere, history, what makes it notable…" className={inputCls + ' resize-none'} onGenerate={async () => { const d = await generateEntity(name, 'location','description', { locationType, region }); if (d.value) setDescription(d.value); }} generateDisabled={!name.trim()} />
+      </Field>
       <ImageField value={image} onChange={setImage} />
 
       {/* Notable features */}
