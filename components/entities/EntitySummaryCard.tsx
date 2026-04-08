@@ -166,7 +166,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
             alt={entity.name}
             fill
             unoptimized
-            className="object-cover opacity-25 grayscale transition-[filter,opacity] duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+            className="object-cover opacity-50 grayscale transition-[filter,opacity] duration-300 group-hover:opacity-100 group-hover:grayscale-0"
           />
         ) : (
           <div className="h-full w-full bg-stone-100" />
@@ -200,11 +200,7 @@ export function EntitySummaryCard({ entity, onEdit }: EntitySummaryCardProps) {
             {subtitle}
           </p>
         )}
-        <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out group-hover:grid-rows-[1fr]">
-          <div className="overflow-hidden">
-            <EntityBadge entity={entity} />
-          </div>
-        </div>
+        <EntityBadge entity={entity} />
       </div>
     </div>
   );
